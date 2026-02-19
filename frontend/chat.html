@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Chat Legal - Tu Abogado de Cabecera</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+</head>
+
+<body>
+
+  <div class="chat-container">
+
+    <!-- HEADER -->
+    <div class="chat-header">
+      <h2>⚖️ Tu Abogado de Cabecera</h2>
+    </div>
+
+    <!-- ESTADO DEL USUARIO -->
+    <div id="estado-usuario" class="estado-usuario">
+      Cargando estado...
+    </div>
+
+    <!-- CHAT -->
+    <div id="chat" class="chat-box"></div>
+
+    <!-- INPUT -->
+    <textarea id="pregunta" placeholder="Escribe tu consulta legal..."></textarea>
+    <button onclick="consultarIA()">Consultar</button>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

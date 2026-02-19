@@ -1,0 +1,149 @@
+/* =========================
+   RESET GENERAL
+========================= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #f1f5f9;
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 30px;
+}
+
+/* =========================
+   CONTENEDOR CHAT
+========================= */
+.chat-container {
+  width: 420px;
+  background: #020617;
+  border-radius: 14px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.6);
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================
+   HEADER CHAT
+========================= */
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1e293b;
+  padding: 12px 16px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.chat-header h2 {
+  font-size: 18px;
+  color: gold;
+}
+
+.logout-btn {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.logout-btn:hover {
+  background: #b91c1c;
+}
+
+/* =========================
+   ESTADO USUARIO
+========================= */
+.estado-usuario {
+  text-align: center;
+  font-size: 14px;
+  padding: 8px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  background: #020617;
+  border: 1px solid #1e293b;
+}
+
+.estado-usuario.free {
+  color: #facc15;
+}
+
+.estado-usuario.premium {
+  color: #22c55e;
+  font-weight: bold;
+}
+
+/* =========================
+   CHAT BOX
+========================= */
+.chat-box {
+  flex: 1;
+  overflow-y: auto;
+  border: 1px solid #1e293b;
+  padding: 10px;
+  border-radius: 8px;
+  background: #020617;
+  margin-bottom: 10px;
+}
+
+/* =========================
+   MENSAJES
+========================= */
+.msg {
+  margin: 8px 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  max-width: 80%;
+  font-size: 14px;
+}
+
+.msg.user {
+  background: #1e40af;
+  margin-left: auto;
+}
+
+.msg.bot {
+  background: #334155;
+  border-left: 3px solid gold;
+}
+
+/* =========================
+   INPUT
+========================= */
+textarea {
+  width: 100%;
+  resize: none;
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+button {
+  width: 100%;
+  background: gold;
+  color: black;
+  font-weight: bold;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #facc15;
+}

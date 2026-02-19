@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel - Tu Abogado de Cabecera</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>⚖️ Panel del usuario</h2>
+    <h3 id="nombreUsuario"></h3>
+
+    <button onclick="logout()">Cerrar sesión</button>
+  </div>
+
+  <script>
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
+
+    if (!usuario) {
+      window.location.href = "index.html";
+    } else {
+      document.getElementById("nombreUsuario").innerText =
+        "Bienvenido, " + usuario.nombre;
+    }
+
+    function logout() {
+      localStorage.removeItem("usuario");
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+</html>
