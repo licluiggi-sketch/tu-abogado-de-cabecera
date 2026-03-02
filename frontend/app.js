@@ -21,7 +21,7 @@ async function login() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
 
-  const res = await fetch("http://localhost:3000/login", {
+  const res = await fetch("/login", {   // 👈 AQUÍ está el cambio
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password })
@@ -53,7 +53,7 @@ async function register() {
   alert("Registro exitoso");
 }
 
-/* =========================
+/* ========================= 
    CONSULTA IA
 ========================= */
 async function consultarIA() {
@@ -77,20 +77,37 @@ async function consultarIA() {
   botMsg.innerText = "⚖️ Analizando...";
   chat.appendChild(botMsg);
 
-  const res = await fetch("http://localhost:3000/consulta", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer " + token
-    },
-    body: JSON.stringify({ pregunta })
-  });
+  try {
 
-  const data = await res.json();
-  botMsg.innerText = data.respuesta;
+    const res = await fetch("http://localhost:3000/consulta", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + token
+      },
+      body: JSON.stringify({ pregunta })
+    });
 
-  // 🔄 Recargar estado por si cambian consultas restantes
-  cargarEstadoUsuario();
+    const data = await res.json();
+
+    botMsg.innerText = data.respuesta;
+
+    // 🔒 Si alcanzó límite
+    if (data.limite) {
+      botMsg.innerHTML += `
+        <br><br>
+        <button onclick="upgradePremium()">
+          🚀 Actualizar a PREMIUM
+        </button>
+      `;
+    }
+
+    // 🔄 Recargar estado actualizado
+    cargarEstadoUsuario();
+
+  } catch (error) {
+    botMsg.innerText = "Error al consultar.";
+  }
 }
 
 /* =========================
@@ -122,7 +139,7 @@ async function cargarHistorial() {
   });
 }
 
-/* =========================
+/* ========================= 
    ESTADO
 ========================= */
 async function cargarEstadoUsuario() {
@@ -141,7 +158,14 @@ async function cargarEstadoUsuario() {
 
     const data = await res.json();
 
-    if (data.tipo === "PREMIUM") {
+    const LIMITE_FREE = 2;
+
+    const esPremiumActivo =
+      data.subscription_status === "active" ||
+      data.subscription_status === "trialing" ||
+      data.tipo === "PREMIUM";
+
+    if (esPremiumActivo) {
 
       estado.innerHTML = `
         🌟 Usuario PREMIUM – Consultas ilimitadas
@@ -151,13 +175,13 @@ async function cargarEstadoUsuario() {
 
     } else {
 
-      const restantes = 5 - data.consultas_hoy;
+      const restantes = LIMITE_FREE - data.consultas_hoy;
 
       estado.innerHTML = `
         🟡 Usuario FREE – ${restantes} consultas restantes
         <br><br>
         <button onclick="upgradePremium()">
-          Actualizar a PREMIUM
+          🚀 Actualizar a PREMIUM
         </button>
         <br><br>
         <button onclick="cerrarSesion()">Cerrar sesión</button>
