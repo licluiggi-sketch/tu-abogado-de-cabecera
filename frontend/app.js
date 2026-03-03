@@ -21,19 +21,27 @@ async function login() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
 
-  const res = await fetch("/login", {   // 👈 AQUÍ está el cambio
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password })
-  });
+  try {
+    const res = await fetch("/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if (data.success) {
-    localStorage.setItem("token", data.token);
-    window.location.href = "chat.html";
-  } else {
-    alert(data.message);
+    console.log("Respuesta del servidor:", data);
+
+    if (data.success === true) {
+      localStorage.setItem("token", data.token);
+      window.location.href = "chat.html";
+    } else {
+      alert(data.message || data.error || "Credenciales incorrectas");
+    }
+
+  } catch (error) {
+    console.error("Error en login:", error);
+    alert("Error de conexión con el servidor");
   }
 }
 
