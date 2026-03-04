@@ -30,18 +30,15 @@ async function login() {
 
     const data = await res.json();
 
-    console.log("Respuesta del servidor:", data);
-
-    if (data.success === true) {
+    if (data.success) {
       localStorage.setItem("token", data.token);
       window.location.href = "chat.html";
     } else {
-      alert(data.message || data.error || "Credenciales incorrectas");
+      alert("Credenciales incorrectas");
     }
 
   } catch (error) {
-    console.error("Error en login:", error);
-    alert("Error de conexión con el servidor");
+    alert("Error de conexión");
   }
 }
 
@@ -52,13 +49,25 @@ async function register() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
 
-  await fetch("http://localhost:3000/register", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password })
-  });
+  try {
+    const res = await fetch("/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
 
-  alert("Registro exitoso");
+    const data = await res.json();
+
+    if (data.success) {
+      alert("Registro exitoso. Ahora puedes iniciar sesión.");
+      window.location.href = "index.html";
+    } else {
+      alert("Ese correo ya está registrado");
+    }
+
+  } catch (error) {
+    alert("Error al registrar");
+  }
 }
 
 /* ========================= 
@@ -87,7 +96,7 @@ async function consultarIA() {
 
   try {
 
-    const res = await fetch("http://localhost:3000/consulta", {
+    const res = await fetch("/consulta", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -97,10 +106,8 @@ async function consultarIA() {
     });
 
     const data = await res.json();
-
     botMsg.innerText = data.respuesta;
 
-    // 🔒 Si alcanzó límite
     if (data.limite) {
       botMsg.innerHTML += `
         <br><br>
@@ -110,7 +117,6 @@ async function consultarIA() {
       `;
     }
 
-    // 🔄 Recargar estado actualizado
     cargarEstadoUsuario();
 
   } catch (error) {
@@ -125,13 +131,12 @@ async function cargarHistorial() {
 
   const token = getToken();
 
-  const res = await fetch("http://localhost:3000/historial", {
+  const res = await fetch("/historial", {
     headers: { "Authorization": "Bearer " + token }
   });
 
   const historial = await res.json();
   const chat = document.getElementById("chat");
-
   chat.innerHTML = "";
 
   historial.forEach(item => {
@@ -158,7 +163,7 @@ async function cargarEstadoUsuario() {
 
   try {
 
-    const res = await fetch("http://localhost:3000/estado", {
+    const res = await fetch("/estado", {
       headers: {
         "Authorization": "Bearer " + token
       }
@@ -167,7 +172,6 @@ async function cargarEstadoUsuario() {
     const data = await res.json();
 
     const LIMITE_FREE = 2;
-
     const esPremiumActivo =
       data.subscription_status === "active" ||
       data.subscription_status === "trialing" ||
@@ -202,7 +206,7 @@ async function cargarEstadoUsuario() {
 }
 
 /* =========================
-   UPGRADE INTELIGENTE
+   UPGRADE
 ========================= */
 async function upgradePremium() {
 
@@ -210,22 +214,7 @@ async function upgradePremium() {
 
   try {
 
-    // 🔎 Primero verificar tipo real
-    const check = await fetch("http://localhost:3000/estado", {
-      headers: {
-        "Authorization": "Bearer " + token
-      }
-    });
-
-    const estado = await check.json();
-
-    if (estado.tipo === "PREMIUM") {
-      alert("Ya eres usuario PREMIUM 😎");
-      return;
-    }
-
-    // 🚀 Si es FREE, crear sesión Stripe
-    const res = await fetch("http://localhost:3000/crear-sesion-checkout", {
+    const res = await fetch("/crear-sesion-checkout", {
       method: "POST",
       headers: { 
         "Authorization": "Bearer " + token 
@@ -241,7 +230,6 @@ async function upgradePremium() {
     }
 
   } catch (error) {
-    console.error("Error:", error);
     alert("Error al iniciar el pago");
   }
 }
