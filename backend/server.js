@@ -1,4 +1,5 @@
 require("dotenv").config();
+
 const Stripe = require("stripe");
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -9,17 +10,29 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const path = require("path");
 const OpenAI = require("openai");
+const rateLimit = require("express-rate-limit");
+
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
 const app = express();
 
 /* =========================
-   PUERTO CORRECTO RENDER
+   PUERTO Y SECRET
 ========================= */
 const PORT = process.env.PORT || 3000;
 const SECRET = process.env.JWT_SECRET || "abogado_secret_2026";
 
 /* =========================
-   STRIPE WEBHOOK (ANTES de express.json)
+   RATE LIMIT
+========================= */
+const chatLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50
+});
+
+/* =========================
+   STRIPE WEBHOOK (ANTES de json)
 ========================= */
 app.post("/webhook-stripe", express.raw({ type: "application/json" }), (req, res) => {
 
@@ -98,9 +111,17 @@ app.post("/webhook-stripe", express.raw({ type: "application/json" }), (req, res
 /* =========================
    MIDDLEWARES
 ========================= */
-app.use(cors());
+app.use(cors({
+  origin: process.env.BASE_URL,
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "../frontend")));
+
+// 🔥 SERVIR FRONTEND + PWA
+app.use(express.static(path.join(__dirname, "frontend")));
+app.use(express.static(path.join(__dirname, "frontend/public")));
 
 /* =========================
    BASE SQLITE
@@ -114,6 +135,7 @@ db.run(`
     password TEXT,
     tipo TEXT DEFAULT 'FREE',
     consultas_hoy INTEGER DEFAULT 0,
+    consultas_total INTEGER DEFAULT 0,
     ultima_consulta TEXT,
     stripe_customer_id TEXT,
     stripe_subscription_id TEXT,
@@ -158,18 +180,46 @@ function verificarToken(req, res, next) {
 /* =========================
    REGISTER
 ========================= */
-app.post("/register", (req, res) => {
-  const { email, password } = req.body;
-  const hashed = bcrypt.hashSync(password, 10);
+app.post("/register", async (req, res) => {
 
-  db.run(
-    "INSERT INTO usuarios (email, password) VALUES (?, ?)",
-    [email, hashed],
-    function (err) {
-      if (err) return res.json({ success: false });
-      res.json({ success: true });
-    }
-  );
+  const { email, password, captchaToken } = req.body;
+
+  if (!email || !password || !captchaToken) {
+    return res.json({ success: false });
+  }
+
+  try {
+
+    const verify = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          secret: process.env.TURNSTILE_SECRET,
+          response: captchaToken
+        })
+      }
+    );
+
+    const captchaData = await verify.json();
+    if (!captchaData.success) return res.json({ success: false });
+
+    const hashed = bcrypt.hashSync(password, 10);
+
+    db.run(
+      "INSERT INTO usuarios (email, password) VALUES (?, ?)",
+      [email, hashed],
+      function (err) {
+        if (err) return res.json({ success: false });
+        res.json({ success: true });
+      }
+    );
+
+  } catch {
+    res.json({ success: false });
+  }
+
 });
 
 /* =========================
@@ -197,12 +247,23 @@ app.post("/login", (req, res) => {
 /* =========================
    CONSULTA IA
 ========================= */
-app.post("/consulta", verificarToken, async (req, res) => {
+app.post("/consulta", verificarToken, chatLimiter, async (req, res) => {
+
+  const origin = req.headers.origin;
+  if (origin !== process.env.BASE_URL) {
+    return res.status(403).json({ respuesta: "Acceso no permitido" });
+  }
 
   const userId = req.usuario.id;
   const pregunta = req.body.pregunta;
 
+  if (!pregunta || pregunta.length > 2000) {
+    return res.json({ respuesta: "Pregunta inválida" });
+  }
+
   db.get("SELECT * FROM usuarios WHERE id = ?", [userId], async (err, user) => {
+
+    if (!user) return res.status(404).json({ respuesta: "Usuario no encontrado" });
 
     const hoy = new Date().toISOString().split("T")[0];
     let consultasHoy = user.consultas_hoy;
@@ -210,31 +271,36 @@ app.post("/consulta", verificarToken, async (req, res) => {
     if (user.ultima_consulta !== hoy) consultasHoy = 0;
 
     const LIMITE_FREE = 2;
-    const esPremiumActivo =
-      ["active", "trialing"].includes(user.subscription_status);
+    const esPremiumActivo = ["active", "trialing"].includes(user.subscription_status);
 
     if (!esPremiumActivo && consultasHoy >= LIMITE_FREE) {
       return res.json({
-        respuesta: "Has alcanzado el límite FREE. Actualiza a PREMIUM.",
+        respuesta: "Has alcanzado el límite FREE",
         limite: true
       });
     }
 
     try {
+
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: "Eres abogado experto en leyes mexicanas." },
+          { role: "system", content: "Eres un abogado experto en derecho mexicano." },
           { role: "user", content: pregunta }
         ],
-        max_tokens: 900
+        max_tokens: 800
       });
 
-      let respuestaIA = completion.choices[0].message.content;
+      const respuestaIA = completion.choices[0].message.content;
 
       db.run(
         "INSERT INTO consultas (usuario_id, pregunta, respuesta) VALUES (?, ?, ?)",
         [userId, pregunta, respuestaIA]
+      );
+
+      db.run(
+        "UPDATE usuarios SET consultas_total = consultas_total + 1 WHERE id=?",
+        [userId]
       );
 
       if (!esPremiumActivo) {
@@ -246,7 +312,7 @@ app.post("/consulta", verificarToken, async (req, res) => {
 
       res.json({ respuesta: respuestaIA });
 
-    } catch (error) {
+    } catch {
       res.status(500).json({ respuesta: "Error IA" });
     }
   });

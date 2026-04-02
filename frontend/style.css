@@ -9,6 +9,7 @@
 
 body {
   font-family: "Segoe UI", Arial, sans-serif;
+  font-size: 17px;
   background: linear-gradient(135deg, #0f172a, #1e293b);
   color: #f1f5f9;
   min-height: 100vh;
@@ -23,7 +24,8 @@ body {
    CONTENEDOR CHAT
 ========================= */
 .chat-container {
-  width: 420px;
+  width: 95%;
+  max-width: 520px;
   background: #020617;
   border-radius: 14px;
   box-shadow: 0 0 20px rgba(0,0,0,0.6);
@@ -107,7 +109,8 @@ body {
   padding: 8px 10px;
   border-radius: 8px;
   max-width: 80%;
-  font-size: 14px;
+  font-size: 16px;
+  line-height: 1.5;
 }
 
 .msg.user {
@@ -126,24 +129,80 @@ body {
 textarea {
   width: 100%;
   resize: none;
-  padding: 8px;
-  border-radius: 8px;
+  padding: 12px;
+  border-radius: 10px;
   border: none;
-  margin-bottom: 8px;
-  font-size: 14px;
+  margin-bottom: 10px;
+  font-size: 16px;
+  min-height: 70px;
 }
 
 button {
   width: 100%;
-  background: gold;
+  background: linear-gradient(45deg,#facc15,#eab308);
   color: black;
   font-weight: bold;
   border: none;
-  padding: 10px;
-  border-radius: 8px;
+  padding: 14px;
+  border-radius: 10px;
   cursor: pointer;
+  font-size: 16px;
+  transition: 0.2s;
 }
 
 button:hover {
-  background: #facc15;
+  transform: scale(1.03);
+  background: linear-gradient(45deg,#fde047,#facc15);
+}
+
+@media (max-width:600px){
+
+.chat-container{
+width:95%;
+padding:12px;
+}
+
+.chat-header h2{
+font-size:16px;
+}
+
+.msg{
+font-size:15px;
+}
+
+textarea{
+font-size:16px;
+}
+
+button{
+font-size:16px;
+padding:12px;
+}
+
+}
+
+/* ====== MOBILE FIX ====== */
+
+button {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.container {
+  padding: 12px;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 600px) {
+  h1 {
+    font-size: 20px;
+  }
 }

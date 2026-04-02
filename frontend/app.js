@@ -1,4 +1,4 @@
-console.log("app.js JWT cargado");
+console.log("Frontend cargado correctamente");
 
 /* =========================
    TOKEN GLOBAL
@@ -12,6 +12,17 @@ function getToken() {
 ========================= */
 if (!getToken() && window.location.pathname.includes("chat.html")) {
   window.location.href = "index.html";
+}
+
+/* =========================
+   SERVICE WORKER (PWA)
+========================= */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(() => console.log("PWA activa"))
+      .catch(err => console.log("Error SW:", err));
+  });
 }
 
 /* =========================
@@ -55,12 +66,26 @@ async function register() {
     return;
   }
 
+  // Obtener token del captcha
+  const captchaToken = document.querySelector(
+    "textarea[name='cf-turnstile-response']"
+  )?.value;
+
+  if (!captchaToken) {
+    alert("Por favor verifica el captcha");
+    return;
+  }
+
   try {
 
     const res = await fetch("/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({
+        email,
+        password,
+        captchaToken
+      })
     });
 
     const data = await res.json();
@@ -69,7 +94,7 @@ async function register() {
       alert("Registro exitoso 🎉");
       window.location.href = "index.html";
     } else {
-      alert("El usuario ya existe o hubo un error");
+      alert("El usuario ya existe o captcha inválido");
     }
 
   } catch (error) {

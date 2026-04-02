@@ -2,17 +2,31 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
   <title>Registro - Tu Abogado de Cabecera</title>
+
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+  <!-- Cloudflare Turnstile CAPTCHA -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+
 </head>
 <body>
 
   <div class="container">
     <h2>Crear cuenta</h2>
 
-    <input type="email" id="email" placeholder="Correo electrónico">
-    <input type="password" id="password" placeholder="Contraseña">
+    <input type="email" id="email" placeholder="Correo electrónico" required>
+    <input type="password" id="password" placeholder="Contraseña" required>
+
+    <!-- CAPTCHA -->
+    <div 
+      class="cf-turnstile"
+      data-sitekey="0x4AAAAAACpoFZgCy8kDY2Jue7NJyo-0KDA"
+      data-theme="dark"
+    ></div>
 
     <button onclick="register()">Registrarme</button>
 
@@ -21,8 +35,10 @@
     <p>
       <a href="index.html">Volver al login</a>
     </p>
+
   </div>
 
   <script src="app.js"></script>
+
 </body>
 </html>
