@@ -66,33 +66,29 @@ async function register() {
     return;
   }
 
-  
   try {
 
     const res = await fetch("/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      const res = await fetch("/register", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    email,
-    password
-  })
-});
-    
+      body: JSON.stringify({
+        email,
+        password
+      })
+    });
+
     const data = await res.json();
 
     if (data.success) {
       alert("Registro exitoso 🎉");
       window.location.href = "index.html";
     } else {
-      alert("El usuario ya existe o captcha inválido");
+      alert("El usuario ya existe");
     }
 
   } catch (error) {
-    console.error("Error en registro:", error);
-    alert("Error de conexión con el servidor");
+    console.error("Error:", error);
+    alert("Error de conexión");
   }
 }
 
