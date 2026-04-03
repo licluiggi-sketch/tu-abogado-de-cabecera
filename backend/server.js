@@ -18,7 +18,7 @@ const fetch = (...args) =>
 const app = express();
 
 /* =========================
-   PUERTO Y SECRET
+   CONFIG
 ========================= */
 const PORT = process.env.PORT || 3000;
 const SECRET = process.env.JWT_SECRET || "abogado_secret_2026";
@@ -32,79 +32,15 @@ const chatLimiter = rateLimit({
 });
 
 /* =========================
-   STRIPE WEBHOOK (ANTES de json)
+   RUTAS BASE (IMPORTANTE)
+========================= */
+const FRONTEND_PATH = path.join(__dirname, "../frontend");
+const PUBLIC_PATH = path.join(__dirname, "../frontend/public");
+
+/* =========================
+   STRIPE WEBHOOK
 ========================= */
 app.post("/webhook-stripe", express.raw({ type: "application/json" }), (req, res) => {
-
-  const sig = req.headers["stripe-signature"];
-  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
-  let event;
-
-  try {
-    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-  } catch (err) {
-    console.log("⚠️ Error webhook:", err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
-  }
-
-  console.log("📩 Evento:", event.type);
-
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object;
-
-    stripe.subscriptions.retrieve(session.subscription)
-      .then(subscription => {
-
-        const status = subscription.status;
-        const tipo = (status === "active" || status === "trialing")
-          ? "PREMIUM"
-          : "FREE";
-
-        db.run(
-          `UPDATE usuarios 
-           SET tipo = ?,
-               stripe_customer_id = ?,
-               stripe_subscription_id = ?,
-               subscription_status = ?,
-               subscription_plan = ?
-           WHERE email = ?`,
-          [
-            tipo,
-            session.customer,
-            session.subscription,
-            status,
-            subscription.items.data[0].price.id,
-            session.customer_email
-          ]
-        );
-      });
-  }
-
-  if (event.type === "customer.subscription.deleted") {
-    const subscription = event.data.object;
-
-    db.run(
-      `UPDATE usuarios 
-       SET tipo = 'FREE',
-           subscription_status = ?
-       WHERE stripe_subscription_id = ?`,
-      [subscription.status, subscription.id]
-    );
-  }
-
-  if (event.type === "invoice.payment_failed") {
-    const invoice = event.data.object;
-
-    db.run(
-      `UPDATE usuarios 
-       SET tipo = 'FREE',
-           subscription_status = 'past_due'
-       WHERE stripe_subscription_id = ?`,
-      [invoice.subscription]
-    );
-  }
-
   res.json({ received: true });
 });
 
@@ -119,16 +55,21 @@ app.use(cors({
 
 app.use(express.json());
 
-// 🔥 SERVIR FRONTEND + PWA
-app.use(express.static(path.join(__dirname, "frontend")));
-app.use(express.static(path.join(__dirname, "frontend/public")));
+/* =========================
+   SERVIR FRONTEND + PWA
+========================= */
+app.use(express.static(FRONTEND_PATH));
+app.use(express.static(PUBLIC_PATH));
 
+/* =========================
+   RUTA PRINCIPAL
+========================= */
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend", "index.html"));
+  res.sendFile(path.join(FRONTEND_PATH, "index.html"));
 });
 
 /* =========================
-   BASE SQLITE
+   BASE DE DATOS
 ========================= */
 const db = new sqlite3.Database("./abogado.db");
 
@@ -253,11 +194,6 @@ app.post("/login", (req, res) => {
 ========================= */
 app.post("/consulta", verificarToken, chatLimiter, async (req, res) => {
 
-  const origin = req.headers.origin;
-  if (origin !== process.env.BASE_URL) {
-    return res.status(403).json({ respuesta: "Acceso no permitido" });
-  }
-
   const userId = req.usuario.id;
   const pregunta = req.body.pregunta;
 
@@ -319,56 +255,6 @@ app.post("/consulta", verificarToken, chatLimiter, async (req, res) => {
     } catch {
       res.status(500).json({ respuesta: "Error IA" });
     }
-  });
-});
-
-/* =========================
-   ESTADO
-========================= */
-app.get("/estado", verificarToken, (req, res) => {
-  db.get(
-    "SELECT tipo, consultas_hoy, subscription_status FROM usuarios WHERE id = ?",
-    [req.usuario.id],
-    (err, user) => res.json(user)
-  );
-});
-
-/* =========================
-   HISTORIAL
-========================= */
-app.get("/historial", verificarToken, (req, res) => {
-  db.all(
-    "SELECT pregunta, respuesta, fecha FROM consultas WHERE usuario_id = ?",
-    [req.usuario.id],
-    (err, rows) => res.json(rows)
-  );
-});
-
-/* =========================
-   STRIPE CHECKOUT
-========================= */
-app.post("/crear-sesion-checkout", verificarToken, async (req, res) => {
-
-  db.get("SELECT email FROM usuarios WHERE id = ?", [req.usuario.id], async (err, user) => {
-
-    const baseUrl = process.env.BASE_URL;
-
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      mode: "subscription",
-      customer_email: user.email,
-      line_items: [
-        {
-          price: process.env.STRIPE_PRICE_ID,
-          quantity: 1,
-        },
-      ],
-      subscription_data: { trial_period_days: 7 },
-      success_url: `${baseUrl}/chat.html`,
-      cancel_url: `${baseUrl}/chat.html`,
-    });
-
-    res.json({ url: session.url });
   });
 });
 
