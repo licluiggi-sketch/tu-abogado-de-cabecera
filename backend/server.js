@@ -129,9 +129,9 @@ app.post("/register", async (req, res) => {
 
   const { email, password, captchaToken } = req.body;
 
-  if (!email || !password || !captchaToken) {
+  if (!email || !password) {
     return res.json({ success: false });
-  }
+  }    
 
   try {
 
