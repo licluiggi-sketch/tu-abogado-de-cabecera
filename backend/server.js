@@ -270,6 +270,12 @@ app.get("/reset", (req, res) => {
   });
 });
 
+app.get("/usuarios", (req, res) => {
+  db.all("SELECT * FROM usuarios", (err, rows) => {
+    res.json(rows);
+  });
+});
+
 /* ========================= */
 app.listen(PORT, () => {
   console.log(`🚀 Servidor funcionando en puerto ${PORT}`);
