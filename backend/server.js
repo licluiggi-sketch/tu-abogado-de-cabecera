@@ -258,6 +258,18 @@ app.post("/consulta", verificarToken, chatLimiter, async (req, res) => {
   });
 });
 
+/* =========================
+   RESET USUARIOS (TEMPORAL)
+========================= */
+app.get("/reset", (req, res) => {
+  db.run("DELETE FROM usuarios", (err) => {
+    if (err) {
+      return res.send("Error al eliminar usuarios");
+    }
+    res.send("Usuarios eliminados");
+  });
+});
+
 /* ========================= */
 app.listen(PORT, () => {
   console.log(`🚀 Servidor funcionando en puerto ${PORT}`);
