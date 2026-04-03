@@ -66,28 +66,21 @@ async function register() {
     return;
   }
 
-  // Obtener token del captcha
-  const captchaToken = document.querySelector(
-    "textarea[name='cf-turnstile-response']"
-  )?.value;
-
-  if (!captchaToken) {
-    alert("Por favor verifica el captcha");
-    return;
-  }
-
+  
   try {
 
     const res = await fetch("/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email,
-        password,
-        captchaToken
-      })
-    });
-
+      const res = await fetch("/register", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    email,
+    password
+  })
+});
+    
     const data = await res.json();
 
     if (data.success) {
