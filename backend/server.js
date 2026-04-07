@@ -125,45 +125,33 @@ function verificarToken(req, res, next) {
 /* =========================
    REGISTER
 ========================= */
-app.post("/register", async (req, res) => {
+app.post("/register", (req, res) => {
 
-  const { email, password, captchaToken } = req.body;
+  const { email, password } = req.body;
 
   if (!email || !password) {
     return res.json({ success: false });
-  }    
-
-  try {
-
-    const verify = await fetch(
-      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          secret: process.env.TURNSTILE_SECRET,
-          response: captchaToken
-        })
-      }
-    );
-
-    const captchaData = await verify.json();
-    if (!captchaData.success) return res.json({ success: false });
-
-    const hashed = bcrypt.hashSync(password, 10);
-
-    db.run(
-      "INSERT INTO usuarios (email, password) VALUES (?, ?)",
-      [email, hashed],
-      function (err) {
-        if (err) return res.json({ success: false });
-        res.json({ success: true });
-      }
-    );
-
-  } catch {
-    res.json({ success: false });
   }
+
+  const hashed = bcrypt.hashSync(password, 10);
+
+  db.run(
+    "INSERT INTO usuarios (email, password) VALUES (?, ?)",
+    [email, hashed],
+    function (err) {
+
+      if (err) {
+        console.log("ERROR REGISTRO:", err.message);
+
+        return res.json({
+          success: false,
+          error: err.message
+        });
+      }
+
+      res.json({ success: true });
+    }
+  );
 
 });
 
