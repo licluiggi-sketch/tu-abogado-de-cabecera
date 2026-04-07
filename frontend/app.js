@@ -39,6 +39,8 @@ async function login() {
       body: JSON.stringify({ email, password })
     });
 
+    if (!res.ok) throw new Error("Error servidor");
+
     const data = await res.json();
 
     if (data.success) {
@@ -49,7 +51,8 @@ async function login() {
     }
 
   } catch (error) {
-    alert("Error de conexión");
+    console.error(error);
+    alert("Error de conexión con el servidor");
   }
 }
 
@@ -71,11 +74,10 @@ async function register() {
     const res = await fetch("/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email,
-        password
-      })
+      body: JSON.stringify({ email, password })
     });
+
+    if (!res.ok) throw new Error("Error servidor");
 
     const data = await res.json();
 
@@ -83,11 +85,11 @@ async function register() {
       alert("Registro exitoso 🎉");
       window.location.href = "index.html";
     } else {
-      alert("El usuario ya existe");
+      alert("El usuario ya existe o error en registro");
     }
 
   } catch (error) {
-    console.error("Error:", error);
+    console.error(error);
     alert("Error de conexión");
   }
 }
@@ -127,22 +129,24 @@ async function consultarIA() {
       body: JSON.stringify({ pregunta })
     });
 
+    if (!res.ok) throw new Error("Error consulta");
+
     const data = await res.json();
-    botMsg.innerText = data.respuesta;
+
+    botMsg.innerText = data.respuesta || "Sin respuesta";
 
     if (data.limite) {
       botMsg.innerHTML += `
         <br><br>
-        <button onclick="upgradePremium()">
-          🚀 Actualizar a PREMIUM
-        </button>
+        <button onclick="upgradePremium()">🚀 Actualizar a PREMIUM</button>
       `;
     }
 
     cargarEstadoUsuario();
 
   } catch (error) {
-    botMsg.innerText = "Error al consultar.";
+    console.error(error);
+    botMsg.innerText = "❌ Error al consultar IA.";
   }
 }
 
@@ -152,30 +156,40 @@ async function consultarIA() {
 async function cargarHistorial() {
 
   const token = getToken();
-
-  const res = await fetch("/historial", {
-    headers: { "Authorization": "Bearer " + token }
-  });
-
-  const historial = await res.json();
   const chat = document.getElementById("chat");
-  chat.innerHTML = "";
+  if (!chat) return;
 
-  historial.forEach(item => {
-    const u = document.createElement("div");
-    u.className = "msg user";
-    u.innerText = item.pregunta;
-    chat.appendChild(u);
+  try {
 
-    const b = document.createElement("div");
-    b.className = "msg bot";
-    b.innerText = item.respuesta;
-    chat.appendChild(b);
-  });
+    const res = await fetch("/historial", {
+      headers: { "Authorization": "Bearer " + token }
+    });
+
+    if (!res.ok) throw new Error("Error historial");
+
+    const historial = await res.json();
+
+    chat.innerHTML = "";
+
+    historial.forEach(item => {
+      const u = document.createElement("div");
+      u.className = "msg user";
+      u.innerText = item.pregunta;
+      chat.appendChild(u);
+
+      const b = document.createElement("div");
+      b.className = "msg bot";
+      b.innerText = item.respuesta;
+      chat.appendChild(b);
+    });
+
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 /* ========================= 
-   ESTADO
+   ESTADO USUARIO
 ========================= */
 async function cargarEstadoUsuario() {
 
@@ -191,9 +205,12 @@ async function cargarEstadoUsuario() {
       }
     });
 
+    if (!res.ok) throw new Error("Error estado");
+
     const data = await res.json();
 
     const LIMITE_FREE = 2;
+
     const esPremiumActivo =
       data.subscription_status === "active" ||
       data.subscription_status === "trialing" ||
@@ -209,26 +226,25 @@ async function cargarEstadoUsuario() {
 
     } else {
 
-      const restantes = LIMITE_FREE - data.consultas_hoy;
+      const restantes = Math.max(0, LIMITE_FREE - (data.consultas_hoy || 0));
 
       estado.innerHTML = `
         🟡 Usuario FREE – ${restantes} consultas restantes
         <br><br>
-        <button onclick="upgradePremium()">
-          🚀 Actualizar a PREMIUM
-        </button>
+        <button onclick="upgradePremium()">🚀 Actualizar a PREMIUM</button>
         <br><br>
         <button onclick="cerrarSesion()">Cerrar sesión</button>
       `;
     }
 
   } catch (error) {
-    estado.innerHTML = "Error cargando estado.";
+    console.error(error);
+    estado.innerHTML = "⚠️ Error cargando estado.";
   }
 }
 
 /* =========================
-   UPGRADE
+   UPGRADE STRIPE
 ========================= */
 async function upgradePremium() {
 
@@ -238,10 +254,12 @@ async function upgradePremium() {
 
     const res = await fetch("/crear-sesion-checkout", {
       method: "POST",
-      headers: { 
-        "Authorization": "Bearer " + token 
+      headers: {
+        "Authorization": "Bearer " + token
       }
     });
+
+    if (!res.ok) throw new Error("Error pago");
 
     const data = await res.json();
 
@@ -252,7 +270,8 @@ async function upgradePremium() {
     }
 
   } catch (error) {
-    alert("Error al iniciar el pago");
+    console.error(error);
+    alert("Error al iniciar pago");
   }
 }
 
@@ -264,7 +283,9 @@ function cerrarSesion() {
   window.location.href = "index.html";
 }
 
-/* AUTOLOAD */
+/* =========================
+   AUTOLOAD CHAT
+========================= */
 if (window.location.pathname.includes("chat.html")) {
   cargarHistorial();
   cargarEstadoUsuario();
