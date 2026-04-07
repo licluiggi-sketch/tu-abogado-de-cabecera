@@ -56,19 +56,6 @@ app.use(cors({
 app.use(express.json());
 
 /* =========================
-   SERVIR FRONTEND + PWA
-========================= */
-app.use(express.static(FRONTEND_PATH));
-app.use(express.static(PUBLIC_PATH));
-
-/* =========================
-   RUTA PRINCIPAL
-========================= */
-app.get("/", (req, res) => {
-  res.sendFile(path.join(FRONTEND_PATH, "index.html"));
-});
-
-/* =========================
    BASE DE DATOS
 ========================= */
 const db = new sqlite3.Database("./abogado.db");
@@ -297,6 +284,19 @@ app.get("/usuarios", (req, res) => {
   db.all("SELECT * FROM usuarios", (err, rows) => {
     res.json(rows);
   });
+});
+
+/* =========================
+   SERVIR FRONTEND + PWA
+========================= */
+app.use(express.static(FRONTEND_PATH));
+app.use(express.static(PUBLIC_PATH));
+
+/* =========================
+   RUTA PRINCIPAL
+========================= */
+app.get("/", (req, res) => {
+  res.sendFile(path.join(FRONTEND_PATH, "index.html"));
 });
 
 /* ========================= */
