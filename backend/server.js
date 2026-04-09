@@ -18,7 +18,7 @@ const fetch = (...args) =>
 const app = express();
 
 /* =========================
-   CONFIG
+   CONFIGURACIÓN
 ========================= */
 const PORT = process.env.PORT || 3000;
 const SECRET = process.env.JWT_SECRET || "abogado_secret_2026";
@@ -28,11 +28,11 @@ const SECRET = process.env.JWT_SECRET || "abogado_secret_2026";
 ========================= */
 const chatLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 50
+  max: 50,
 });
 
 /* =========================
-   RUTAS BASE (IMPORTANTE)
+   RUTAS FRONTEND
 ========================= */
 const FRONTEND_PATH = path.join(__dirname, "../frontend");
 const PUBLIC_PATH = path.join(__dirname, "../frontend/public");
@@ -40,23 +40,29 @@ const PUBLIC_PATH = path.join(__dirname, "../frontend/public");
 /* =========================
    STRIPE WEBHOOK
 ========================= */
-app.post("/webhook-stripe", express.raw({ type: "application/json" }), (req, res) => {
-  res.json({ received: true });
-});
+app.post(
+  "/webhook-stripe",
+  express.raw({ type: "application/json" }),
+  (req, res) => {
+    res.json({ received: true });
+  }
+);
 
 /* =========================
    MIDDLEWARES
 ========================= */
-app.use(cors({
-  origin: process.env.BASE_URL,
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
+app.use(
+  cors({
+    origin: process.env.BASE_URL || "*",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 app.use(express.json());
 
 /* =========================
-   BASE DE DATOS
+   BASE DE DATOS SQLITE
 ========================= */
 const db = new sqlite3.Database("./abogado.db");
 
@@ -113,7 +119,6 @@ function verificarToken(req, res, next) {
    REGISTER
 ========================= */
 app.post("/register", (req, res) => {
-
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -126,20 +131,13 @@ app.post("/register", (req, res) => {
     "INSERT INTO usuarios (email, password) VALUES (?, ?)",
     [email, hashed],
     function (err) {
-
       if (err) {
         console.log("ERROR REGISTRO:", err.message);
-
-        return res.json({
-          success: false,
-          error: err.message
-        });
+        return res.json({ success: false, error: err.message });
       }
-
       res.json({ success: true });
     }
   );
-
 });
 
 /* =========================
@@ -148,27 +146,30 @@ app.post("/register", (req, res) => {
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
-  db.get("SELECT * FROM usuarios WHERE email = ?", [email], (err, user) => {
-    if (!user) return res.json({ success: false });
+  db.get(
+    "SELECT * FROM usuarios WHERE email = ?",
+    [email],
+    (err, user) => {
+      if (!user) return res.json({ success: false });
 
-    const ok = bcrypt.compareSync(password, user.password);
-    if (!ok) return res.json({ success: false });
+      const ok = bcrypt.compareSync(password, user.password);
+      if (!ok) return res.json({ success: false });
 
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      SECRET,
-      { expiresIn: "2h" }
-    );
+      const token = jwt.sign(
+        { id: user.id, email: user.email },
+        SECRET,
+        { expiresIn: "2h" }
+      );
 
-    res.json({ success: true, token });
-  });
+      res.json({ success: true, token });
+    }
+  );
 });
 
 /* =========================
    CONSULTA IA
 ========================= */
 app.post("/consulta", verificarToken, chatLimiter, async (req, res) => {
-
   const userId = req.usuario.id;
   const pregunta = req.body.pregunta;
 
@@ -176,106 +177,174 @@ app.post("/consulta", verificarToken, chatLimiter, async (req, res) => {
     return res.json({ respuesta: "Pregunta inválida" });
   }
 
-  db.get("SELECT * FROM usuarios WHERE id = ?", [userId], async (err, user) => {
+  db.get(
+    "SELECT * FROM usuarios WHERE id = ?",
+    [userId],
+    async (err, user) => {
+      if (!user)
+        return res
+          .status(404)
+          .json({ respuesta: "Usuario no encontrado" });
 
-    if (!user) return res.status(404).json({ respuesta: "Usuario no encontrado" });
+      const hoy = new Date().toISOString().split("T")[0];
+      let consultasHoy = user.consultas_hoy;
 
-    const hoy = new Date().toISOString().split("T")[0];
-    let consultasHoy = user.consultas_hoy;
+      if (user.ultima_consulta !== hoy) consultasHoy = 0;
 
-    if (user.ultima_consulta !== hoy) consultasHoy = 0;
+      const LIMITE_FREE = 2;
+      const esPremiumActivo = [
+        "active",
+        "trialing",
+      ].includes(user.subscription_status);
 
-    const LIMITE_FREE = 2;
-    const esPremiumActivo = ["active", "trialing"].includes(user.subscription_status);
-
-    if (!esPremiumActivo && consultasHoy >= LIMITE_FREE) {
-      return res.json({
-        respuesta: "Has alcanzado el límite FREE",
-        limite: true
-      });
-    }
-
-    try {
-
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-       messages: [
-       {
-       role: "system",
-       content: `
-       Eres un abogado profesional experto en derecho mexicano.
-
-       IMPORTANTE:
-
-       1. Da respuestas claras, bien estructuradas y profesionales.
-       2. Si no tienes información actualizada (por ejemplo salarios, montos o fechas recientes), dilo claramente:
-          "⚠️ La información puede no estar actualizada, se recomienda verificar datos oficiales recientes."
-       3. NO inventes datos actuales.
-       4. Cuando sea posible cita leyes reales:
-          - Constitución Política de los Estados Unidos Mexicanos
-          - Ley Federal del Trabajo
-          - Código Civil Federal
-          - Código Penal Federal
-          - Ley de Amparo
-          - Codigo de Cmercio
-          - Codigo Fiscal
-          - Ley Agraria
-          - Constituciones de los Estados
-          - Leyes de Seguridad Social, INFONAVIT
-          - Jurisprudencia
-       5. Explica todo en lenguaje sencillo.
-
-       FORMATO:
-
-      📜 Fundamento legal  
-      📖 Explicación  
-      ✅ Qué puedes hacer  
-
-      Al final agrega siempre:
-
-      "⚖️ Esta información es orientativa y no sustituye asesoría legal profesional por lo que se recomienda buscar un abogado especializado."
-      `
-      },
-      { role: "user", content: pregunta }
-      ],
-        max_tokens: 800
-      });
-
-      const respuestaIA = completion.choices[0].message.content;
-
-      db.run(
-        "INSERT INTO consultas (usuario_id, pregunta, respuesta) VALUES (?, ?, ?)",
-        [userId, pregunta, respuestaIA]
-      );
-
-      db.run(
-        "UPDATE usuarios SET consultas_total = consultas_total + 1 WHERE id=?",
-        [userId]
-      );
-
-      if (!esPremiumActivo) {
-        db.run(
-          "UPDATE usuarios SET consultas_hoy = ?, ultima_consulta = ? WHERE id = ?",
-          [consultasHoy + 1, hoy, userId]
-        );
+      if (!esPremiumActivo && consultasHoy >= LIMITE_FREE) {
+        return res.json({
+          respuesta: "Has alcanzado el límite FREE",
+          limite: true,
+        });
       }
 
-      res.json({ respuesta: respuestaIA });
+      try {
+        const completion = await openai.chat.completions.create({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: `
+Eres un abogado profesional experto en derecho mexicano.
 
-    } catch {
-      res.status(500).json({ respuesta: "Error IA" });
+IMPORTANTE:
+1. Da respuestas claras, bien estructuradas y profesionales.
+2. Si no tienes información actualizada (por ejemplo salarios, montos o fechas recientes), dilo claramente:
+   "⚠️ La información puede no estar actualizada, se recomienda verificar datos oficiales recientes." 
+3. NO inventes datos actuales.
+4. Cuando sea posible cita leyes reales:
+   - Constitución Política de los Estados Unidos Mexicanos 
+   - Ley Federal del Trabajo 
+   - Código Civil Federal - Código Penal Federal 
+   - Ley de Amparo - Codigo de Cmercio 
+   - Codigo Fiscal - Ley Agraria 
+   - Constituciones de los Estados 
+   - Leyes de Seguridad Social, INFONAVIT 
+   - Jurisprudencia 
+5. Explica todo en lenguaje sencillo.IMPORTANTE:
+
+FORMATO:
+📜 Fundamento legal
+📖 Explicación
+✅ Qué puedes hacer
+
+"⚖️ Esta información es orientativa y no sustituye asesoría legal profesional."
+`,
+            },
+            { role: "user", content: pregunta },
+          ],
+          max_tokens: 800,
+        });
+
+        const respuestaIA =
+          completion.choices[0].message.content;
+
+        db.run(
+          "INSERT INTO consultas (usuario_id, pregunta, respuesta) VALUES (?, ?, ?)",
+          [userId, pregunta, respuestaIA]
+        );
+
+        db.run(
+          "UPDATE usuarios SET consultas_total = consultas_total + 1 WHERE id=?",
+          [userId]
+        );
+
+        if (!esPremiumActivo) {
+          db.run(
+            "UPDATE usuarios SET consultas_hoy = ?, ultima_consulta = ? WHERE id = ?",
+            [consultasHoy + 1, hoy, userId]
+          );
+        }
+
+        res.json({ respuesta: respuestaIA });
+      } catch (error) {
+        console.error("Error IA:", error);
+        res.status(500).json({ respuesta: "Error IA" });
+      }
     }
-  });
+  );
 });
 
 /* =========================
-   RESET USUARIOS (TEMPORAL)
+   ESTADO DEL USUARIO
+========================= */
+app.get("/estado", verificarToken, (req, res) => {
+  db.get(
+    "SELECT tipo, consultas_hoy, subscription_status FROM usuarios WHERE id = ?",
+    [req.usuario.id],
+    (err, user) => {
+      if (err || !user) {
+        return res
+          .status(404)
+          .json({ error: "Usuario no encontrado" });
+      }
+      res.json(user);
+    }
+  );
+});
+
+/* =========================
+   HISTORIAL
+========================= */
+app.get("/historial", verificarToken, (req, res) => {
+  db.all(
+    "SELECT pregunta, respuesta, fecha FROM consultas WHERE usuario_id = ? ORDER BY fecha DESC",
+    [req.usuario.id],
+    (err, rows) => {
+      if (err) return res.status(500).json([]);
+      res.json(rows);
+    }
+  );
+});
+
+/* =========================
+   STRIPE CHECKOUT
+========================= */
+app.post(
+  "/crear-sesion-checkout",
+  verificarToken,
+  async (req, res) => {
+    db.get(
+      "SELECT email FROM usuarios WHERE id = ?",
+      [req.usuario.id],
+      async (err, user) => {
+        if (!user)
+          return res.status(404).json({ error: "Usuario no encontrado" });
+
+        const baseUrl = process.env.BASE_URL;
+
+        const session = await stripe.checkout.sessions.create({
+          payment_method_types: ["card"],
+          mode: "subscription",
+          customer_email: user.email,
+          line_items: [
+            {
+              price: process.env.STRIPE_PRICE_ID,
+              quantity: 1,
+            },
+          ],
+          subscription_data: { trial_period_days: 7 },
+          success_url: `${baseUrl}/chat.html`,
+          cancel_url: `${baseUrl}/chat.html`,
+        });
+
+        res.json({ url: session.url });
+      }
+    );
+  }
+);
+
+/* =========================
+   RUTAS DE PRUEBA
 ========================= */
 app.get("/reset", (req, res) => {
-  db.run("DELETE FROM usuarios", (err) => {
-    if (err) {
-      return res.send("Error al eliminar usuarios");
-    }
+  db.run("DELETE FROM usuarios", () => {
     res.send("Usuarios eliminados");
   });
 });
@@ -292,14 +361,13 @@ app.get("/usuarios", (req, res) => {
 app.use(express.static(FRONTEND_PATH));
 app.use(express.static(PUBLIC_PATH));
 
-/* =========================
-   RUTA PRINCIPAL
-========================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(FRONTEND_PATH, "index.html"));
 });
 
-/* ========================= */
+/* =========================
+   INICIAR SERVIDOR
+========================= */
 app.listen(PORT, () => {
   console.log(`🚀 Servidor funcionando en puerto ${PORT}`);
 });
