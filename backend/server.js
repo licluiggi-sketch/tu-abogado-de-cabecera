@@ -51,13 +51,11 @@ app.post(
 /* =========================
    MIDDLEWARES
 ========================= */
-app.use(
-  cors({
-    origin: process.env.BASE_URL || "*",
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+app.use(cors({
+  origin: process.env.BASE_URL || "*",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
 app.use(express.json());
 
@@ -306,16 +304,16 @@ app.get("/historial", verificarToken, (req, res) => {
 /* =========================
    STRIPE CHECKOUT
 ========================= */
-app.post(
-  "/crear-sesion-checkout",
-  verificarToken,
-  async (req, res) => {
+app.post("/crear-sesion-checkout", verificarToken, async (req, res) => {
+  try {
     db.get(
       "SELECT email FROM usuarios WHERE id = ?",
       [req.usuario.id],
       async (err, user) => {
-        if (!user)
-          return res.status(404).json({ error: "Usuario no encontrado" });
+        if (err || !user) {
+          console.error("Error obteniendo usuario:", err);
+          return res.status(500).json({ error: "Usuario no encontrado" });
+        }
 
         const baseUrl = process.env.BASE_URL;
 
@@ -337,8 +335,11 @@ app.post(
         res.json({ url: session.url });
       }
     );
+  } catch (error) {
+    console.error("Error Stripe:", error.message);
+    res.status(500).json({ error: "Error al crear sesión de pago" });
   }
-);
+});
 
 /* =========================
    RUTAS DE PRUEBA
@@ -355,6 +356,10 @@ app.get("/usuarios", (req, res) => {
   });
 });
 
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
 /* =========================
    SERVIR FRONTEND + PWA
 ========================= */
@@ -363,6 +368,11 @@ app.use(express.static(PUBLIC_PATH));
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(FRONTEND_PATH, "index.html"));
+});
+
+app.use((err, req, res, next) => {
+  console.error("❌ Error interno:", err.stack);
+  res.status(500).json({ error: "Error interno del servidor" });
 });
 
 /* =========================
