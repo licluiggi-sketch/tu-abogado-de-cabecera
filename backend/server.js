@@ -40,13 +40,86 @@ const PUBLIC_PATH = path.join(__dirname, "../frontend/public");
 /* =========================
    STRIPE WEBHOOK
 ========================= */
-app.post(
-  "/webhook-stripe",
-  express.raw({ type: "application/json" }),
-  (req, res) => {
-    res.json({ received: true });
+app.post("/webhook-stripe", express.raw({ type: "application/json" }), (req, res) => {
+  const sig = req.headers["stripe-signature"];
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+  } catch (err) {
+    console.error("⚠️ Error en webhook:", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
   }
-);
+
+  console.log("📩 Evento recibido:", event.type);
+
+  // Pago completado
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object;
+
+    stripe.subscriptions.retrieve(session.subscription)
+      .then(subscription => {
+        const status = subscription.status;
+
+        const tipo = (status === "active" || status === "trialing")
+          ? "PREMIUM"
+          : "FREE";
+
+        db.run(
+          `UPDATE usuarios 
+           SET tipo = ?, 
+               stripe_customer_id = ?, 
+               stripe_subscription_id = ?, 
+               subscription_status = ?, 
+               subscription_plan = ?
+           WHERE email = ?`,
+          [
+            tipo,
+            session.customer,
+            session.subscription,
+            status,
+            subscription.items.data[0].price.id,
+            session.customer_email
+          ],
+          function (err) {
+            if (err) {
+              console.error("❌ Error actualizando usuario:", err.message);
+            } else {
+              console.log("✅ Usuario actualizado a PREMIUM:", session.customer_email);
+            }
+          }
+        );
+      });
+  }
+
+  // Cancelación de suscripción
+  if (event.type === "customer.subscription.deleted") {
+    const subscription = event.data.object;
+
+    db.run(
+      `UPDATE usuarios 
+       SET tipo = 'FREE', subscription_status = ?
+       WHERE stripe_subscription_id = ?`,
+      [subscription.status, subscription.id]
+    );
+  }
+
+  // Pago fallido
+  if (event.type === "invoice.payment_failed") {
+    const invoice = event.data.object;
+
+    db.run(
+      `UPDATE usuarios 
+       SET tipo = 'FREE', subscription_status = 'past_due'
+       WHERE stripe_subscription_id = ?`,
+      [invoice.subscription]
+    );
+  }
+
+  res.json({ received: true });
+});
 
 /* =========================
    MIDDLEWARES
