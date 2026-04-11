@@ -125,12 +125,34 @@ app.post("/webhook-stripe", express.raw({ type: "application/json" }), (req, res
    MIDDLEWARES
 ========================= */
 app.use(cors({
-  origin: process.env.BASE_URL || "*",
+  origin: function (origin, callback) {
+    // Permite solicitudes sin origen (como Postman o apps móviles)
+    if (!origin) return callback(null, true);
+
+    const allowedOrigins = [
+      process.env.BASE_URL,
+      "http://localhost:3000",
+      "http://127.0.0.1:5500"
+    ];
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("No permitido por CORS"));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 app.use(express.json());
+
+/* =========================
+   HEALTH CHECK
+========================= */
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
+});
 
 /* =========================
    BASE DE DATOS SQLITE
@@ -241,105 +263,140 @@ app.post("/login", (req, res) => {
    CONSULTA IA
 ========================= */
 app.post("/consulta", verificarToken, chatLimiter, async (req, res) => {
-  const userId = req.usuario.id;
-  const pregunta = req.body.pregunta;
+  try {
+    const userId = req.usuario.id;
+    const { pregunta } = req.body;
 
-  if (!pregunta || pregunta.length > 2000) {
-    return res.json({ respuesta: "Pregunta inválida" });
-  }
+    // Validar pregunta
+    if (!pregunta || typeof pregunta !== "string" || pregunta.trim().length === 0) {
+      return res.status(400).json({ respuesta: "Pregunta inválida" });
+    }
 
-  db.get(
-    "SELECT * FROM usuarios WHERE id = ?",
-    [userId],
-    async (err, user) => {
-      if (!user)
-        return res
-          .status(404)
-          .json({ respuesta: "Usuario no encontrado" });
+    if (pregunta.length > 2000) {
+      return res.status(400).json({ respuesta: "La pregunta es demasiado larga" });
+    }
 
-      const hoy = new Date().toISOString().split("T")[0];
-      let consultasHoy = user.consultas_hoy;
+    // Obtener usuario
+    db.get(
+      "SELECT * FROM usuarios WHERE id = ?",
+      [userId],
+      async (err, user) => {
+        if (err) {
+          console.error("Error DB:", err.message);
+          return res.status(500).json({ respuesta: "Error en la base de datos" });
+        }
 
-      if (user.ultima_consulta !== hoy) consultasHoy = 0;
+        if (!user) {
+          return res.status(404).json({ respuesta: "Usuario no encontrado" });
+        }
 
-      const LIMITE_FREE = 2;
-      const esPremiumActivo = [
-        "active",
-        "trialing",
-      ].includes(user.subscription_status);
+        // Control de consultas diarias
+        const hoy = new Date().toISOString().split("T")[0];
+        let consultasHoy = user.consultas_hoy || 0;
 
-      if (!esPremiumActivo && consultasHoy >= LIMITE_FREE) {
-        return res.json({
-          respuesta: "Has alcanzado el límite FREE",
-          limite: true,
-        });
-      }
+        if (user.ultima_consulta !== hoy) {
+          consultasHoy = 0;
+        }
 
-      try {
-        const completion = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content: `
+        const LIMITE_FREE = 2;
+        const esPremiumActivo =
+          ["active", "trialing"].includes(user.subscription_status) ||
+          user.tipo === "PREMIUM";
+
+        if (!esPremiumActivo && consultasHoy >= LIMITE_FREE) {
+          return res.json({
+            respuesta: "Has alcanzado el límite FREE",
+            limite: true,
+          });
+        }
+
+        try {
+          // Consulta a OpenAI
+          const completion = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "system",
+                content: `
 Eres un abogado profesional experto en derecho mexicano.
 
 IMPORTANTE:
 1. Da respuestas claras, bien estructuradas y profesionales.
-2. Si no tienes información actualizada (por ejemplo salarios, montos o fechas recientes), dilo claramente:
-   "⚠️ La información puede no estar actualizada, se recomienda verificar datos oficiales recientes." 
+2. Si no tienes información actualizada (por ejemplo, salarios, montos o fechas recientes), indícalo claramente.
 3. NO inventes datos actuales.
-4. Cuando sea posible cita leyes reales:
-   - Constitución Política de los Estados Unidos Mexicanos 
-   - Ley Federal del Trabajo 
-   - Código Civil Federal - Código Penal Federal 
-   - Ley de Amparo - Codigo de Cmercio 
-   - Codigo Fiscal - Ley Agraria 
-   - Constituciones de los Estados 
-   - Leyes de Seguridad Social, INFONAVIT 
-   - Jurisprudencia 
-5. Explica todo en lenguaje sencillo.IMPORTANTE:
+4. Cuando sea posible, cita leyes reales:
+   - Constitución Política de los Estados Unidos Mexicanos
+   - Ley Federal del Trabajo
+   - Código Civil Federal
+   - Código Penal Federal
+   - Ley de Amparo
+   - Código de Comercio
+   - Código Fiscal de la Federación
+   - Ley Agraria
+   - Ley del Seguro Social e INFONAVIT
+   - Jurisprudencia
+5. Explica todo en lenguaje sencillo y profesional.
 
 FORMATO:
 📜 Fundamento legal
 📖 Explicación
 ✅ Qué puedes hacer
 
+Incluye siempre al final:
 "⚖️ Esta información es orientativa y no sustituye asesoría legal profesional."
-`,
-            },
-            { role: "user", content: pregunta },
-          ],
-          max_tokens: 800,
-        });
+                `,
+              },
+              {
+                role: "user",
+                content: pregunta,
+              },
+            ],
+            max_tokens: 800,
+            temperature: 0.3,
+          });
 
-        const respuestaIA =
-          completion.choices[0].message.content;
+          const respuestaIA =
+            completion.choices?.[0]?.message?.content ||
+            "No se pudo generar una respuesta.";
 
-        db.run(
-          "INSERT INTO consultas (usuario_id, pregunta, respuesta) VALUES (?, ?, ?)",
-          [userId, pregunta, respuestaIA]
-        );
-
-        db.run(
-          "UPDATE usuarios SET consultas_total = consultas_total + 1 WHERE id=?",
-          [userId]
-        );
-
-        if (!esPremiumActivo) {
+          // Guardar consulta
           db.run(
-            "UPDATE usuarios SET consultas_hoy = ?, ultima_consulta = ? WHERE id = ?",
-            [consultasHoy + 1, hoy, userId]
+            "INSERT INTO consultas (usuario_id, pregunta, respuesta) VALUES (?, ?, ?)",
+            [userId, pregunta, respuestaIA],
+            (err) => {
+              if (err) {
+                console.error("Error guardando consulta:", err.message);
+              }
+            }
           );
-        }
 
-        res.json({ respuesta: respuestaIA });
-      } catch (error) {
-        console.error("Error IA:", error);
-        res.status(500).json({ respuesta: "Error IA" });
+          // Actualizar estadísticas
+          db.run(
+            "UPDATE usuarios SET consultas_total = consultas_total + 1 WHERE id = ?",
+            [userId]
+          );
+
+          if (!esPremiumActivo) {
+            db.run(
+              "UPDATE usuarios SET consultas_hoy = ?, ultima_consulta = ? WHERE id = ?",
+              [consultasHoy + 1, hoy, userId]
+            );
+          }
+
+          return res.json({ respuesta: respuestaIA });
+
+        } catch (error) {
+          console.error("Error OpenAI:", error.message);
+          return res.status(500).json({
+            respuesta: "Error al consultar la IA. Inténtalo nuevamente.",
+          });
+        }
       }
-    }
-  );
+    );
+  } catch (error) {
+    console.error("Error en /consulta:", error);
+    return res.status(500).json({ respuesta: "Error interno del servidor" });
+  }
 });
 
 /* =========================
