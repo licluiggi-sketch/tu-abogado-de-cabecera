@@ -60,37 +60,57 @@ async function login() {
    REGISTRO
 ========================= */
 async function register() {
-
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
+  const confirmPassword = document.getElementById("confirmPassword").value.trim();
+  const mensaje = document.getElementById("mensaje");
 
-  if (!email || !password) {
-    alert("Completa todos los campos");
+  mensaje.textContent = "";
+  mensaje.className = "";
+
+  if (!email || !password || !confirmPassword) {
+    mensaje.textContent = "Completa todos los campos.";
+    mensaje.className = "error";
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    mensaje.textContent = "Las contraseñas no coinciden.";
+    mensaje.className = "error";
+    return;
+  }
+
+  if (password.length < 6) {
+    mensaje.textContent = "La contraseña debe tener al menos 6 caracteres.";
+    mensaje.className = "error";
     return;
   }
 
   try {
-
     const res = await fetch("/register", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({ email, password })
     });
-
-    if (!res.ok) throw new Error("Error servidor");
 
     const data = await res.json();
 
     if (data.success) {
-      alert("Registro exitoso 🎉");
-      window.location.href = "index.html";
+      mensaje.textContent = "Registro exitoso. Redirigiendo...";
+      mensaje.className = "success";
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 1500);
     } else {
-      alert("El usuario ya existe o error en registro");
+      mensaje.textContent = "El usuario ya existe.";
+      mensaje.className = "error";
     }
 
   } catch (error) {
-    console.error(error);
-    alert("Error de conexión");
+    mensaje.textContent = "Error de conexión con el servidor.";
+    mensaje.className = "error";
   }
 }
 
@@ -289,4 +309,46 @@ function cerrarSesion() {
 if (window.location.pathname.includes("chat.html")) {
   cargarHistorial();
   cargarEstadoUsuario();
+}
+
+/* =========================
+   MOSTRAR / OCULTAR CONTRASEÑA
+========================= */
+function togglePassword(inputId, icon) {
+  const input = document.getElementById(inputId);
+
+  if (input.type === "password") {
+    input.type = "text";
+    icon.textContent = "🙈";
+  } else {
+    input.type = "password";
+    icon.textContent = "👁️";
+  }
+}
+
+/* =========================
+   RECUPERAR CONTRASEÑA
+========================= */
+function recuperarPassword() {
+  const email = document.getElementById("recoveryEmail").value.trim();
+  const mensaje = document.getElementById("mensaje");
+
+  if (!email) {
+    mensaje.textContent = "Ingresa tu correo electrónico.";
+    mensaje.style.color = "red";
+    return;
+  }
+
+  mensaje.textContent =
+    "📩 Función en desarrollo. Próximamente recibirás un enlace de recuperación.";
+  mensaje.style.color = "green";
+}
+
+function toggleAllPasswords() {
+  const password = document.getElementById("password");
+  const confirmPassword = document.getElementById("confirmPassword");
+
+  const type = password.type === "password" ? "text" : "password";
+  password.type = type;
+  confirmPassword.type = type;
 }

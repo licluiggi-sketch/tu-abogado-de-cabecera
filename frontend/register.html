@@ -3,12 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>Registro - Tu Abogado de Cabecera</title>
 
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
 
+  <style>
+    .password-container {
+      position: relative;
+      width: 100%;
+    }
+
+    .password-container input {
+      width: 100%;
+      padding-right: 40px;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 18px;
+      color: #555;
+    }
+
+    .checkbox-container {
+      text-align: left;
+      margin: 10px 0;
+      font-size: 14px;
+    }
+
+    .checkbox-container input {
+      margin-right: 5px;
+    }
+
+    .error {
+      color: red;
+      font-size: 14px;
+    }
+
+    .success {
+      color: green;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
 
@@ -16,7 +56,26 @@
     <h2>Crear cuenta</h2>
 
     <input type="email" id="email" placeholder="Correo electrónico" required>
-    <input type="password" id="password" placeholder="Contraseña" required>
+
+    <!-- Contraseña -->
+    <div class="password-container">
+      <input type="password" id="password" placeholder="Contraseña" required>
+      <span class="toggle-password" onclick="togglePassword('password', this)">👁️</span>
+    </div>
+
+    <!-- Confirmar Contraseña -->
+    <div class="password-container">
+      <input type="password" id="confirmPassword" placeholder="Confirmar contraseña" required>
+      <span class="toggle-password" onclick="togglePassword('confirmPassword', this)">👁️</span>
+    </div>
+
+    <!-- Mostrar contraseña -->
+    <div class="checkbox-container">
+      <label>
+        <input type="checkbox" onclick="toggleAllPasswords()">
+        Mostrar contraseñas
+      </label>
+    </div>
 
     <button onclick="register()">Registrarme</button>
 
@@ -25,10 +84,8 @@
     <p>
       <a href="index.html">Volver al login</a>
     </p>
-
   </div>
 
   <script src="app.js"></script>
-
 </body>
 </html>
