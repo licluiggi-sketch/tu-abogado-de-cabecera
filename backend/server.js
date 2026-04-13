@@ -11,6 +11,7 @@ const jwt = require("jsonwebtoken");
 const path = require("path");
 const OpenAI = require("openai");
 const rateLimit = require("express-rate-limit");
+const nodemailer = require("nodemailer");
 
 const fetch = (...args) =>
   import("node-fetch").then(({ default: fetch }) => fetch(...args));
@@ -185,11 +186,31 @@ db.run(`
   )
 `);
 
+db.run(`
+  CREATE TABLE IF NOT EXISTS password_resets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT,
+    token TEXT,
+    expires DATETIME
+  )
+`);
+
 /* =========================
    OPENAI
 ========================= */
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+});
+
+/* =========================
+   CONFIGURACIÓN DE EMAIL
+========================= */
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
 });
 
 /* =========================
@@ -255,6 +276,90 @@ app.post("/login", (req, res) => {
       );
 
       res.json({ success: true, token });
+    }
+  );
+});
+
+/* =========================
+   SOLICITAR RECUPERACIÓN
+========================= */
+app.post("/recuperar-password", (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.json({ success: false, message: "Correo requerido" });
+  }
+
+  db.get("SELECT * FROM usuarios WHERE email = ?", [email], (err, user) => {
+    if (!user) {
+      return res.json({ success: false, message: "Usuario no encontrado" });
+    }
+
+    const crypto = require("crypto");
+    const token = crypto.randomBytes(32).toString("hex");
+    const expires = new Date(Date.now() + 3600000).toISOString(); // 1 hora
+
+    db.run(
+      "INSERT INTO password_resets (email, token, expires) VALUES (?, ?, ?)",
+      [email, token, expires]
+    );
+
+    const resetLink = `${process.env.BASE_URL}/reset-password.html?token=${token}`;
+
+    const mailOptions = {
+      from: `"Tu Abogado de Cabecera" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Recuperación de Contraseña",
+      html: `
+        <h2>Recuperación de Contraseña</h2>
+        <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
+        <a href="${resetLink}">${resetLink}</a>
+        <p>Este enlace expirará en 1 hora.</p>
+      `,
+    };
+
+    transporter.sendMail(mailOptions, (error) => {
+      if (error) {
+        console.error(error);
+        return res.json({ success: false });
+      }
+      res.json({ success: true });
+    });
+  });
+});
+
+/* =========================
+   RESTABLECER CONTRASEÑA
+========================= */
+app.post("/reset-password", (req, res) => {
+  const { token, password } = req.body;
+
+  if (!token || !password) {
+    return res.json({ success: false });
+  }
+
+  db.get(
+    "SELECT * FROM password_resets WHERE token = ?",
+    [token],
+    (err, record) => {
+      if (!record) {
+        return res.json({ success: false, message: "Token inválido" });
+      }
+
+      if (new Date(record.expires) < new Date()) {
+        return res.json({ success: false, message: "Token expirado" });
+      }
+
+      const hashed = bcrypt.hashSync(password, 10);
+
+      db.run(
+        "UPDATE usuarios SET password = ? WHERE email = ?",
+        [hashed, record.email],
+        () => {
+          db.run("DELETE FROM password_resets WHERE email = ?", [record.email]);
+          res.json({ success: true });
+        }
+      );
     }
   );
 });

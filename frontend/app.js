@@ -352,3 +352,40 @@ function toggleAllPasswords() {
   password.type = type;
   confirmPassword.type = type;
 }
+
+/* =========================
+   RECUPERAR CONTRASEÑA
+========================= */
+async function recuperarPassword() {
+  const email = document.getElementById("recoveryEmail").value.trim();
+  const mensaje = document.getElementById("mensaje");
+
+  if (!email) {
+    mensaje.textContent = "Ingresa tu correo electrónico.";
+    mensaje.style.color = "red";
+    return;
+  }
+
+  try {
+    const res = await fetch("/recuperar-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      mensaje.textContent = "📩 Revisa tu correo para restablecer tu contraseña.";
+      mensaje.style.color = "green";
+    } else {
+      mensaje.textContent = "No se encontró el usuario.";
+      mensaje.style.color = "red";
+    }
+  } catch (error) {
+    mensaje.textContent = "Error de conexión con el servidor.";
+    mensaje.style.color = "red";
+  }
+}
