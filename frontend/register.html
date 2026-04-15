@@ -8,6 +8,9 @@
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
 
+  <!-- Cloudflare Turnstile -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
   <style>
     .password-container {
       position: relative;
@@ -48,13 +51,21 @@
       color: green;
       font-size: 14px;
     }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h2>Crear cuenta</h2>
+    <h2>⚖️ Crear cuenta</h2>
 
+    <!-- Correo -->
     <input type="email" id="email" placeholder="Correo electrónico" required>
 
     <!-- Contraseña -->
@@ -69,7 +80,7 @@
       <span class="toggle-password" onclick="togglePassword('confirmPassword', this)">👁️</span>
     </div>
 
-    <!-- Mostrar contraseña -->
+    <!-- Mostrar contraseñas -->
     <div class="checkbox-container">
       <label>
         <input type="checkbox" onclick="toggleAllPasswords()">
@@ -77,15 +88,123 @@
       </label>
     </div>
 
+    <!-- CAPTCHA de Cloudflare -->
+    <div class="cf-turnstile"
+         data-sitekey="TU_TURNSTILE_SITE_KEY">
+    </div>
+
+    <br>
+
+    <!-- Botón de registro -->
     <button onclick="register()">Registrarme</button>
 
     <p id="mensaje"></p>
 
     <p>
-      <a href="index.html">Volver al login</a>
+      ¿Ya tienes cuenta?
+      <a href="index.html">Inicia sesión</a>
     </p>
   </div>
 
   <script src="app.js"></script>
+
+  <script>
+    /* =========================
+       MOSTRAR / OCULTAR CONTRASEÑA
+    ========================== */
+    function togglePassword(id, icon) {
+      const input = document.getElementById(id);
+      if (input.type === "password") {
+        input.type = "text";
+        icon.textContent = "🙈";
+      } else {
+        input.type = "password";
+        icon.textContent = "👁️";
+      }
+    }
+
+    function toggleAllPasswords() {
+      const password = document.getElementById("password");
+      const confirmPassword = document.getElementById("confirmPassword");
+      const type = password.type === "password" ? "text" : "password";
+      password.type = type;
+      confirmPassword.type = type;
+    }
+
+    /* =========================
+       REGISTRO DE USUARIO
+    ========================== */
+    async function register() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+      const mensaje = document.getElementById("mensaje");
+
+      mensaje.textContent = "";
+      mensaje.className = "";
+
+      // Validaciones
+      if (!email || !password || !confirmPassword) {
+        mensaje.textContent = "Por favor, completa todos los campos.";
+        mensaje.className = "error";
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        mensaje.textContent = "Las contraseñas no coinciden.";
+        mensaje.className = "error";
+        return;
+      }
+
+      if (password.length < 6) {
+        mensaje.textContent = "La contraseña debe tener al menos 6 caracteres.";
+        mensaje.className = "error";
+        return;
+      }
+
+      // Obtener token del CAPTCHA
+      const captchaToken = document.querySelector(
+        "input[name='cf-turnstile-response']"
+      )?.value;
+
+      if (!captchaToken) {
+        mensaje.textContent = "Por favor, verifica el CAPTCHA.";
+        mensaje.className = "error";
+        return;
+      }
+
+      try {
+        const response = await fetch("/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            email,
+            password,
+            captchaToken
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          mensaje.textContent = "Registro exitoso. Redirigiendo al login...";
+          mensaje.className = "success";
+
+          setTimeout(() => {
+            window.location.href = "index.html";
+          }, 2000);
+        } else {
+          mensaje.textContent = data.error || "Error al registrarse.";
+          mensaje.className = "error";
+        }
+      } catch (error) {
+        mensaje.textContent = "Error del servidor.";
+        mensaje.className = "error";
+      }
+    }
+  </script>
+
 </body>
 </html>

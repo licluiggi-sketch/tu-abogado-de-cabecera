@@ -57,7 +57,7 @@ async function login() {
 }
 
 /* =========================
-   REGISTRO
+   REGISTRO CON CAPTCHA
 ========================= */
 async function register() {
   const email = document.getElementById("email").value.trim();
@@ -68,20 +68,34 @@ async function register() {
   mensaje.textContent = "";
   mensaje.className = "";
 
+  // Validar campos
   if (!email || !password || !confirmPassword) {
     mensaje.textContent = "Completa todos los campos.";
     mensaje.className = "error";
     return;
   }
 
+  // Validar contraseñas
   if (password !== confirmPassword) {
     mensaje.textContent = "Las contraseñas no coinciden.";
     mensaje.className = "error";
     return;
   }
 
+  // Validar longitud de contraseña
   if (password.length < 6) {
     mensaje.textContent = "La contraseña debe tener al menos 6 caracteres.";
+    mensaje.className = "error";
+    return;
+  }
+
+  // Obtener token del CAPTCHA de Cloudflare
+  const captchaToken = document.querySelector(
+    "input[name='cf-turnstile-response']"
+  )?.value;
+
+  if (!captchaToken) {
+    mensaje.textContent = "Por favor, verifica el CAPTCHA.";
     mensaje.className = "error";
     return;
   }
@@ -92,7 +106,11 @@ async function register() {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({
+        email,
+        password,
+        captchaToken
+      })
     });
 
     const data = await res.json();
@@ -100,17 +118,34 @@ async function register() {
     if (data.success) {
       mensaje.textContent = "Registro exitoso. Redirigiendo...";
       mensaje.className = "success";
+
+      // Reiniciar CAPTCHA
+      if (window.turnstile) {
+        turnstile.reset();
+      }
+
       setTimeout(() => {
         window.location.href = "index.html";
       }, 1500);
     } else {
-      mensaje.textContent = "El usuario ya existe.";
+      mensaje.textContent =
+        data.error || data.message || "El usuario ya existe.";
       mensaje.className = "error";
+
+      // Reiniciar CAPTCHA en caso de error
+      if (window.turnstile) {
+        turnstile.reset();
+      }
     }
 
   } catch (error) {
+    console.error("Error en registro:", error);
     mensaje.textContent = "Error de conexión con el servidor.";
     mensaje.className = "error";
+
+    if (window.turnstile) {
+      turnstile.reset();
+    }
   }
 }
 
