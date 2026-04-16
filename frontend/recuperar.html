@@ -3,17 +3,61 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Recuperar Contraseña</title>
+  <title>Recuperar Contraseña - Tu Abogado de Cabecera</title>
+
   <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="favicon.ico">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+  <!-- Cloudflare Turnstile CAPTCHA -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+  <style>
+    .success {
+      color: green;
+      font-size: 14px;
+    }
+
+    .error {
+      color: red;
+      font-size: 14px;
+    }
+
+    .info {
+      color: #555;
+      font-size: 14px;
+    }
+
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
 </head>
 <body>
 
   <div class="container">
     <h2>🔐 Recuperar Contraseña</h2>
 
-    <input type="email" id="recoveryEmail" placeholder="Ingresa tu correo" required>
-    <button onclick="recuperarPassword()">Enviar solicitud</button>
+    <p class="info">
+      Ingresa tu correo electrónico y recibirás un enlace para restablecer tu contraseña.
+    </p>
+
+    <input 
+      type="email" 
+      id="recoveryEmail" 
+      placeholder="Ingresa tu correo electrónico" 
+      required
+    >
+
+    <!-- CAPTCHA de Cloudflare Turnstile -->
+    <div class="cf-turnstile"
+         data-sitekey="0x4AAAAAACpoFVzsoLy-jhC3"
+         data-theme="light">
+    </div>
+
+    <button id="btnRecuperar" onclick="recuperarPassword()">
+      Enviar solicitud
+    </button>
 
     <p id="mensaje"></p>
 
@@ -23,6 +67,15 @@
   </div>
 
   <script src="app.js"></script>
+
+  <script>
+    // Evita envíos múltiples mientras se procesa la solicitud
+    function bloquearBoton(bloquear) {
+      const boton = document.getElementById("btnRecuperar");
+      boton.disabled = bloquear;
+      boton.textContent = bloquear ? "Enviando..." : "Enviar solicitud";
+    }
+  </script>
 
 </body>
 </html>

@@ -4,8 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - Tu Abogado de Cabecera</title>
+
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="style.css">
+
+  <!-- Cloudflare Turnstile CAPTCHA -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
   <style>
     .password-container {
@@ -27,6 +31,12 @@
       font-size: 18px;
       color: #555;
     }
+
+    .cf-turnstile {
+      margin: 15px 0;
+      display: flex;
+      justify-content: center;
+    }
   </style>
 </head>
 <body>
@@ -34,28 +44,56 @@
   <div class="container">
     <h2>⚖️ Tu Abogado de Cabecera</h2>
 
-    <input type="email" id="email" placeholder="Correo electrónico" required>
+    <form onsubmit="event.preventDefault(); login();">
+      
+      <!-- Correo electrónico -->
+      <input 
+        type="email" 
+        id="email" 
+        placeholder="Correo electrónico" 
+        autocomplete="email"
+        required
+      >
 
-    <div class="password-container">
-      <input type="password" id="password" placeholder="Contraseña" required>
-      <span class="toggle-password" onclick="togglePassword('password', this)">👁️</span>
-    </div>
+      <!-- Contraseña -->
+      <div class="password-container">
+        <input 
+          type="password" 
+          id="password" 
+          placeholder="Contraseña" 
+          autocomplete="current-password"
+          required
+        >
+        <span class="toggle-password" onclick="togglePassword('password', this)">👁️</span>
+      </div>
 
-    <button onclick="login()">Ingresar</button>
+      <!-- CAPTCHA Cloudflare Turnstile -->
+      <div 
+        class="cf-turnstile"
+        data-sitekey="0x4AAAAAACpoFVzsoLy-jhC3">
+      </div>
 
+      <!-- Botón de inicio de sesión -->
+      <button type="submit">Ingresar</button>
+
+    </form>
+
+    <!-- Mensajes -->
     <p id="mensaje"></p>
 
+    <!-- Recuperación de contraseña -->
     <p>
       <a href="recuperar.html">¿Olvidaste tu contraseña?</a>
     </p>
 
+    <!-- Registro -->
     <p>
       ¿No tienes cuenta?
       <a href="register.html">Regístrate aquí</a>
     </p>
   </div>
 
-  <!-- ESTE SCRIPT DEBE IR AL FINAL -->
+  <!-- Script principal -->
   <script src="app.js"></script>
 
 </body>

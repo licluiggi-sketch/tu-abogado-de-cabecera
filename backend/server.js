@@ -225,22 +225,32 @@ const transporter = nodemailer.createTransport({
 });
 
 /* =========================
-   VERIFICAR CAPTCHA
+   VERIFICAR CAPTCHA TURNSTILE
 ========================= */
 async function verificarTurnstile(token) {
-  if (!process.env.TURNSTILE_SECRET) return true;
+  try {
+    if (!token) return false;
 
-  const response = await fetch(
-    "https://challenges.cloudflare.com/turnstile/v0/siteverify",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `secret=${process.env.TURNSTILE_SECRET}&response=${token}`,
-    }
-  );
+    const response = await fetch(
+      "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          secret: process.env.TURNSTILE_SECRET,
+          response: token,
+        }),
+      }
+    );
 
-  const data = await response.json();
-  return data.success;
+    const data = await response.json();
+    return data.success === true;
+  } catch (error) {
+    console.error("Error verificando Turnstile:", error);
+    return false;
+  }
 }
 
 /* =========================
@@ -288,32 +298,88 @@ app.post("/register", async (req, res) => {
    LOGIN
 ========================= */
 app.post("/login", async (req, res) => {
-  const { email, password, captchaToken } = req.body;
+  try {
+    const { email, password, captchaToken } = req.body;
 
-  if (!(await verificarTurnstile(captchaToken))) {
-    return res.json({ success: false, message: "Captcha inválido" });
-  }
-
-  const emailNormalizado = email.trim().toLowerCase();
-
-  db.get(
-    "SELECT * FROM usuarios WHERE LOWER(email) = ?",
-    [emailNormalizado],
-    (err, user) => {
-      if (!user) return res.json({ success: false });
-
-      const ok = bcrypt.compareSync(password, user.password);
-      if (!ok) return res.json({ success: false });
-
-      const token = jwt.sign(
-        { id: user.id, email: user.email },
-        SECRET,
-        { expiresIn: "2h" }
-      );
-
-      res.json({ success: true, token });
+    // Validar campos
+    if (!email || !password || !captchaToken) {
+      return res.status(400).json({
+        success: false,
+        message: "Todos los campos son obligatorios.",
+      });
     }
-  );
+
+    // Verificar CAPTCHA de Cloudflare Turnstile
+    const captchaValido = await verificarTurnstile(captchaToken);
+    if (!captchaValido) {
+      return res.status(400).json({
+        success: false,
+        message: "Captcha inválido. Inténtalo nuevamente.",
+      });
+    }
+
+    // Normalizar el correo electrónico
+    const emailNormalizado = email.trim().toLowerCase();
+
+    // Buscar usuario en la base de datos
+    db.get(
+      "SELECT * FROM usuarios WHERE LOWER(email) = ?",
+      [emailNormalizado],
+      (err, user) => {
+        if (err) {
+          console.error("Error en la base de datos:", err.message);
+          return res.status(500).json({
+            success: false,
+            message: "Error interno del servidor.",
+          });
+        }
+
+        if (!user) {
+          return res.status(401).json({
+            success: false,
+            message: "Correo o contraseña incorrectos.",
+          });
+        }
+
+        // Verificar contraseña
+        const passwordValida = bcrypt.compareSync(password, user.password);
+        if (!passwordValida) {
+          return res.status(401).json({
+            success: false,
+            message: "Correo o contraseña incorrectos.",
+          });
+        }
+
+        // Generar token JWT
+        const token = jwt.sign(
+          {
+            id: user.id,
+            email: user.email,
+            tipo: user.tipo,
+          },
+          SECRET,
+          { expiresIn: "2h" }
+        );
+
+        // Respuesta exitosa
+        res.json({
+          success: true,
+          token,
+          usuario: {
+            id: user.id,
+            email: user.email,
+            tipo: user.tipo,
+          },
+        });
+      }
+    );
+  } catch (error) {
+    console.error("Error en /login:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error interno del servidor.",
+    });
+  }
 });
 
 /* =========================

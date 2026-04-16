@@ -26,20 +26,47 @@ if ('serviceWorker' in navigator) {
 }
 
 /* =========================
-   LOGIN
+   LOGIN CON CAPTCHA
 ========================= */
 async function login() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
+  const mensaje = document.getElementById("mensaje");
+
+  mensaje.textContent = "";
+  mensaje.className = "";
+
+  if (!email || !password) {
+    mensaje.textContent = "Completa todos los campos.";
+    mensaje.className = "error";
+    return;
+  }
+
+  // Obtener token de Cloudflare Turnstile
+  const captchaField = document.querySelector(
+    ".cf-turnstile textarea[name='cf-turnstile-response']"
+  );
+
+  if (!captchaField || !captchaField.value) {
+    mensaje.textContent = "Por favor, verifica el CAPTCHA.";
+    mensaje.className = "error";
+    return;
+  }
+
+  const turnstileToken = captchaField.value;
 
   try {
     const res = await fetch("/login", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password })
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email,
+        password,
+        turnstileToken
+      })
     });
-
-    if (!res.ok) throw new Error("Error servidor");
 
     const data = await res.json();
 
@@ -47,12 +74,19 @@ async function login() {
       localStorage.setItem("token", data.token);
       window.location.href = "chat.html";
     } else {
-      alert("Credenciales incorrectas");
+      mensaje.textContent =
+        data.message || "Correo o contraseña incorrectos.";
+      mensaje.className = "error";
+
+      // Reiniciar CAPTCHA
+      if (window.turnstile) {
+        window.turnstile.reset();
+      }
     }
 
   } catch (error) {
-    console.error(error);
-    alert("Error de conexión con el servidor");
+    mensaje.textContent = "Error de conexión con el servidor.";
+    mensaje.className = "error";
   }
 }
 
@@ -364,41 +398,49 @@ function togglePassword(inputId, icon) {
 /* =========================
    RECUPERAR CONTRASEÑA
 ========================= */
-function recuperarPassword() {
-  const email = document.getElementById("recoveryEmail").value.trim();
+async function recuperarPassword() {
+  const emailInput = document.getElementById("recoveryEmail");
   const mensaje = document.getElementById("mensaje");
+  const boton = document.getElementById("btnRecuperar");
 
+  if (!emailInput || !mensaje) return;
+
+  const email = emailInput.value.trim();
+
+  mensaje.textContent = "";
+  mensaje.className = "";
+
+  // Validar correo
   if (!email) {
     mensaje.textContent = "Ingresa tu correo electrónico.";
-    mensaje.style.color = "red";
+    mensaje.className = "error";
     return;
   }
 
-  mensaje.textContent =
-    "📩 Función en desarrollo. Próximamente recibirás un enlace de recuperación.";
-  mensaje.style.color = "green";
-}
-
-function toggleAllPasswords() {
-  const password = document.getElementById("password");
-  const confirmPassword = document.getElementById("confirmPassword");
-
-  const type = password.type === "password" ? "text" : "password";
-  password.type = type;
-  confirmPassword.type = type;
-}
-
-/* =========================
-   RECUPERAR CONTRASEÑA
-========================= */
-async function recuperarPassword() {
-  const email = document.getElementById("recoveryEmail").value.trim();
-  const mensaje = document.getElementById("mensaje");
-
-  if (!email) {
-    mensaje.textContent = "Ingresa tu correo electrónico.";
-    mensaje.style.color = "red";
+  // Validar formato de correo
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    mensaje.textContent = "Ingresa un correo electrónico válido.";
+    mensaje.className = "error";
     return;
+  }
+
+  // Obtener token de Cloudflare Turnstile
+  let captchaToken = "";
+  if (typeof turnstile !== "undefined") {
+    captchaToken = turnstile.getResponse();
+  }
+
+  if (!captchaToken) {
+    mensaje.textContent = "Por favor, verifica que no eres un robot.";
+    mensaje.className = "error";
+    return;
+  }
+
+  // Deshabilitar botón para evitar múltiples envíos
+  if (boton) {
+    boton.disabled = true;
+    boton.textContent = "Enviando...";
   }
 
   try {
@@ -407,20 +449,49 @@ async function recuperarPassword() {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ email })
+      body: JSON.stringify({
+        email,
+        captchaToken
+      })
     });
 
     const data = await res.json();
 
     if (data.success) {
-      mensaje.textContent = "📩 Revisa tu correo para restablecer tu contraseña.";
-      mensaje.style.color = "green";
+      mensaje.textContent =
+        "📩 Si el correo está registrado, recibirás un enlace para restablecer tu contraseña.";
+      mensaje.className = "success";
+      emailInput.value = "";
     } else {
-      mensaje.textContent = "No se encontró el usuario.";
-      mensaje.style.color = "red";
+      mensaje.textContent =
+        data.message || "No se pudo procesar la solicitud.";
+      mensaje.className = "error";
     }
+
+    // Reiniciar CAPTCHA
+    if (typeof turnstile !== "undefined") {
+      turnstile.reset();
+    }
+
   } catch (error) {
+    console.error("Error:", error);
     mensaje.textContent = "Error de conexión con el servidor.";
-    mensaje.style.color = "red";
+    mensaje.className = "error";
+  } finally {
+    if (boton) {
+      boton.disabled = false;
+      boton.textContent = "Enviar solicitud";
+    }
   }
+}
+
+function toggleAllPasswords() {
+  const password = document.getElementById("password");
+  const confirmPassword = document.getElementById("confirmPassword");
+
+  if (!password || !confirmPassword) return;
+
+  const type = password.type === "password" ? "text" : "password";
+  password.type = type;
+  confirmPassword.type = type;
 }
