@@ -67,7 +67,7 @@ app.post(
     }
 
     console.log("📩 Evento recibido:", event.type);
-
+    // Pago completado
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
 
@@ -93,29 +93,69 @@ app.post(
               status,
               subscription.items.data[0].price.id,
               session.customer_email,
-            ]
+            ], 
+            function (err) {
+             if (err) {
+               console.error("❌ Error actualizando usuario:", err.message);
+             } else {
+               console.log("✅ Usuario actualizado a PREMIUM:",
+      session.customer_email);
+             }
+            }
           );
         });
-    }
+       }
+
+       // Cancelación de suscripción
+       if (event.type === "customer.subscription.deleted") {
+         const subscription = event.data.object;
+
+         db.run(
+          UPDATE usuarios
+          SET tipo = 'FREE', subscription_status = ?
+          WHERE stripe_subscription_id = ?,
+          [subscription.status, subscription.id]
+        );
+       }
+
+       // Pago fallido 
+       if (event.type === "invoice.payment_failed") {
+         const invoice = event.data.object;
+
+         db.run(
+          UPDATE usuarios 
+          SET tipo = 'FREE', subscription_status = 'past_due'
+          WHERE stripe_subscription_id = ?,
+          [invoice.subscription] 
+        );
+       }
 
     res.json({ received: true });
-  }
-);
+ });
 
 /* =========================
    MIDDLEWARES
 ========================= */
-app.use(
-  cors({
-    origin: [
-      BASE_URL,
+app.use(cors({
+  origin: function (origin, callback) {
+    // Permite solicitudes sin origen (como Postman o apps móviles)
+    if (!origin) return callback(null, true);
+
+    const allowedOrigins = [
+      process.env.BASE_URL,
       "http://localhost:3000",
-      "http://127.0.0.1:5500",
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+      "http://127.0.0.1:5500"
+    ];
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("No permitido por CORS"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
 app.use(express.json());
 
@@ -364,70 +404,142 @@ app.post("/reset-password", (req, res) => {
 /* =========================
    CONSULTA IA
 ========================= */
-app.post(
-  "/consulta",
-  verificarToken,
-  chatLimiter,
-  async (req, res) => {
+app.post("/consulta", verificarToken, chatLimiter, async (req, res) => {
+  try {
+    const userId = req.usuario.id;
     const { pregunta } = req.body;
 
+    // Validar pregunta
+    if (!pregunta || typeof pregunta !== "string" || pregunta.trim().length === 0) {
+      return res.status(400).json({ respuesta: "Pregunta inválida" });
+    }
+
+    if (pregunta.length > 2000) {
+      return res.status(400).json({ respuesta: "La pregunta es demasiado larga" });
+    }
+
+    // Obtener usuario
     db.get(
       "SELECT * FROM usuarios WHERE id = ?",
-      [req.usuario.id],
+      [userId],
       async (err, user) => {
-        if (!user)
-          return res
-            .status(404)
-            .json({ respuesta: "Usuario no encontrado" });
+        if (err) {
+          console.error("Error DB:", err.message);
+          return res.status(500).json({ respuesta: "Error en la base de datos" });
+        }
 
-        const completion =
-          await openai.chat.completions.create({
+        if (!user) {
+          return res.status(404).json({ respuesta: "Usuario no encontrado" });
+        }
+
+        // Control de consultas diarias
+        const hoy = new Date().toISOString().split("T")[0];
+        let consultasHoy = user.consultas_hoy || 0;
+
+        if (user.ultima_consulta !== hoy) {
+          consultasHoy = 0;
+        }
+
+        const LIMITE_FREE = 2;
+        const esPremiumActivo =
+          ["active", "trialing"].includes(user.subscription_status) ||
+          user.tipo === "PREMIUM";
+
+        if (!esPremiumActivo && consultasHoy >= LIMITE_FREE) {
+          return res.json({
+            respuesta: "Has alcanzado el límite FREE",
+            limite: true,
+          });
+        }
+
+        try {
+          // Consulta a OpenAI
+          const completion = await openai.chat.completions.create({
             model: "gpt-4o-mini",
             messages: [
               {
                 role: "system",
-                content:
-                  Eres un abogado profesional experto en derecho mexicano.
-                  IMPORTANTE:
-                  1. Da respuestas claras, bien estructuradas y profesionales.
-                  2. Si no tienes información actualizada (por ejemplo, salarios, montos o fechas recientes),
-                     indícalo claramente.
-                  3. NO inventes datos actuales.
-                  4. Cuando sea posible, cita leyes reales:
-                     - Constitución Política de los Estados Unidos Mexicanos
-                     - Ley Federal del Trabajo
-                     - Código Civil Federal
-                     - Código Penal Federal
-                     - Ley de Amparo
-                     - Código de Comercio
-                     - Código Fiscal de la Federación
-                     - Ley Agraria
-                     - Ley del Seguro Social e INFONAVIT
-                     - Jurisprudencia
-                  5. Explica todo en lenguaje sencillo y profesional.
+                content: `
+Eres un abogado profesional experto en derecho mexicano.
 
-                  FORMATO: 
-                   📜 Fundamento legal
-                   📖 Explicación
-                   ✅ Qué puedes hacer
+IMPORTANTE:
+1. Da respuestas claras, bien estructuradas y profesionales.
+2. Si no tienes información actualizada (por ejemplo, salarios, montos o fechas recientes), indícalo claramente.
+3. NO inventes datos actuales.
+4. Cuando sea posible, cita leyes reales:
+   - Constitución Política de los Estados Unidos Mexicanos
+   - Ley Federal del Trabajo
+   - Código Civil Federal
+   - Código Penal Federal
+   - Ley de Amparo
+   - Código de Comercio
+   - Código Fiscal de la Federación
+   - Ley Agraria
+   - Ley del Seguro Social e INFONAVIT
+   - Jurisprudencia
+5. Explica todo en lenguaje sencillo y profesional.
 
-                   Incluye siempre al final: 
-                   "⚖️ Esta información es orientativa y no sustituye asesoría legal profesional."
-                   
+FORMATO:
+📜 Fundamento legal
+📖 Explicación
+✅ Qué puedes hacer
+
+Incluye siempre al final:
+"⚖️ Esta información es orientativa y no sustituye asesoría legal profesional."
+                `,
               },
-              { role: "user", content: pregunta },
+              {
+                role: "user",
+                content: pregunta,
+              },
             ],
             max_tokens: 800,
+            temperature: 0.3,
           });
 
-        const respuesta =
-          completion.choices[0].message.content;
+          const respuestaIA =
+            completion.choices?.[0]?.message?.content ||
+            "No se pudo generar una respuesta.";
 
-        res.json({ respuesta });
+          // Guardar consulta
+          db.run(
+            "INSERT INTO consultas (usuario_id, pregunta, respuesta) VALUES (?, ?, ?)",
+            [userId, pregunta, respuestaIA],
+            (err) => {
+              if (err) {
+                console.error("Error guardando consulta:", err.message);
+              }
+            }
+          );
+
+          // Actualizar estadísticas
+          db.run(
+            "UPDATE usuarios SET consultas_total = consultas_total + 1 WHERE id = ?",
+            [userId]
+          );
+
+          if (!esPremiumActivo) {
+            db.run(
+              "UPDATE usuarios SET consultas_hoy = ?, ultima_consulta = ? WHERE id = ?",
+              [consultasHoy + 1, hoy, userId]
+            );
+          }
+
+          return res.json({ respuesta: respuestaIA });
+
+        } catch (error) {
+          console.error("Error OpenAI:", error.message);
+          return res.status(500).json({
+            respuesta: "Error al consultar la IA. Inténtalo nuevamente.",
+          });
+        }
       }
     );
+  } catch (error) {
+    console.error("Error en /consulta:", error);
+    return res.status(500).json({ respuesta: "Error interno del servidor" });
   }
-);
+});
 
 /* =========================
    ESTADO E HISTORIAL
@@ -483,6 +595,25 @@ app.post(
     );
   }
 );
+
+/* =========================
+ RUTAS DE PRUEBA
+========================= */
+app.get("/reset", (req, res) => {
+ db.run("DELETE FROM usuarios", () => {
+ res.send("Usuarios eliminados");
+ });
+});
+
+app.get("/usuarios", (req, res) => {
+ db.all("SELECT * FROM usuarios", (err, rows) => {
+  res.json(rows);
+ });
+});
+
+app.get("/health", (req, res) => {
+ res.json({ status: "ok" });
+});
 
 /* =========================
    SERVIR FRONTEND
