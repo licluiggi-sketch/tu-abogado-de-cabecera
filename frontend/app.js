@@ -42,18 +42,16 @@ async function login() {
     return;
   }
 
-  // Obtener token de Cloudflare Turnstile
-  const captchaField = document.querySelector(
-    ".cf-turnstile textarea[name='cf-turnstile-response']"
-  );
+  // 🔥 OBTENER TOKEN DEL CAPTCHA
+  const captchaToken = document.querySelector(
+    ".cf-turnstile textarea"
+  )?.value;
 
-  if (!captchaField || !captchaField.value) {
+  if (!captchaToken) {
     mensaje.textContent = "Por favor, verifica el CAPTCHA.";
-    mensaje.className = "error";
+    mensaje.style.color = "red";
     return;
   }
-
-  const turnstileToken = captchaField.value;
 
   try {
     const res = await fetch("/login", {
@@ -61,11 +59,7 @@ async function login() {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        email,
-        password,
-        turnstileToken
-      })
+      body: JSON.stringify({ email, password, captchaToken })
     });
 
     const data = await res.json();
@@ -74,18 +68,12 @@ async function login() {
       localStorage.setItem("token", data.token);
       window.location.href = "chat.html";
     } else {
-      mensaje.textContent =
-        data.message || "Correo o contraseña incorrectos.";
+      mensaje.textContent = data.message || "Credenciales incorrectas.";
       mensaje.className = "error";
-
-      // Reiniciar CAPTCHA
-      if (window.turnstile) {
-        window.turnstile.reset();
-      }
     }
 
   } catch (error) {
-    mensaje.textContent = "Error de conexión con el servidor.";
+    mensaje.textContent = "Error de conexión.";
     mensaje.className = "error";
   }
 }
