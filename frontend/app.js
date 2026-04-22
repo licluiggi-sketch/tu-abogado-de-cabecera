@@ -17,16 +17,27 @@ if (!getToken() && window.location.pathname.includes("chat.html")) {
 /* =========================
    SERVICE WORKER (PWA)
 ========================= */
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/sw.js")
       .then(() => console.log("PWA activa"))
-      .catch(err => console.log("Error SW:", err));
+      .catch((err) => console.log("Error SW:", err));
   });
 }
 
 /* =========================
-   LOGIN CON CAPTCHA
+   OBTENER CAPTCHA (CORRECTO)
+========================= */
+function obtenerCaptcha() {
+  if (typeof turnstile !== "undefined") {
+    return turnstile.getResponse();
+  }
+  return "";
+}
+
+/* =========================
+   LOGIN
 ========================= */
 async function login() {
   const email = document.getElementById("email").value.trim();
@@ -42,14 +53,11 @@ async function login() {
     return;
   }
 
-  // 🔥 OBTENER TOKEN DEL CAPTCHA
-  const captchaToken = document.querySelector(
-    ".cf-turnstile textarea"
-  )?.value;
+  const captchaToken = obtenerCaptcha();
 
   if (!captchaToken) {
     mensaje.textContent = "Por favor, verifica el CAPTCHA.";
-    mensaje.style.color = "red";
+    mensaje.className = "error";
     return;
   }
 
@@ -57,9 +65,9 @@ async function login() {
     const res = await fetch("/login", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email, password, captchaToken })
+      body: JSON.stringify({ email, password, captchaToken }),
     });
 
     const data = await res.json();
@@ -70,8 +78,8 @@ async function login() {
     } else {
       mensaje.textContent = data.message || "Credenciales incorrectas.";
       mensaje.className = "error";
+      turnstile.reset();
     }
-
   } catch (error) {
     mensaje.textContent = "Error de conexión.";
     mensaje.className = "error";
@@ -79,45 +87,41 @@ async function login() {
 }
 
 /* =========================
-   REGISTRO CON CAPTCHA
+   REGISTRO
 ========================= */
 async function register() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
-  const confirmPassword = document.getElementById("confirmPassword").value.trim();
+  const confirmPassword = document
+    .getElementById("confirmPassword")
+    .value.trim();
   const mensaje = document.getElementById("mensaje");
 
   mensaje.textContent = "";
   mensaje.className = "";
 
-  // Validar campos
   if (!email || !password || !confirmPassword) {
     mensaje.textContent = "Completa todos los campos.";
     mensaje.className = "error";
     return;
   }
 
-  // Validar contraseñas
   if (password !== confirmPassword) {
     mensaje.textContent = "Las contraseñas no coinciden.";
     mensaje.className = "error";
     return;
   }
 
-  // Validar longitud de contraseña
   if (password.length < 6) {
-    mensaje.textContent = "La contraseña debe tener al menos 6 caracteres.";
+    mensaje.textContent = "Mínimo 6 caracteres.";
     mensaje.className = "error";
     return;
   }
 
-  // Obtener token del CAPTCHA de Cloudflare
-  const captchaToken = document.querySelector(
-    "input[name='cf-turnstile-response']"
-  )?.value;
+  const captchaToken = obtenerCaptcha();
 
   if (!captchaToken) {
-    mensaje.textContent = "Por favor, verifica el CAPTCHA.";
+    mensaje.textContent = "Verifica el CAPTCHA.";
     mensaje.className = "error";
     return;
   }
@@ -126,56 +130,37 @@ async function register() {
     const res = await fetch("/register", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        email,
-        password,
-        captchaToken
-      })
+      body: JSON.stringify({ email, password, captchaToken }),
     });
 
     const data = await res.json();
 
     if (data.success) {
-      mensaje.textContent = "Registro exitoso. Redirigiendo...";
+      mensaje.textContent = "Registro exitoso...";
       mensaje.className = "success";
 
-      // Reiniciar CAPTCHA
-      if (window.turnstile) {
-        turnstile.reset();
-      }
+      turnstile.reset();
 
       setTimeout(() => {
         window.location.href = "index.html";
       }, 1500);
     } else {
-      mensaje.textContent =
-        data.error || data.message || "El usuario ya existe.";
+      mensaje.textContent = data.message || "Error al registrar.";
       mensaje.className = "error";
-
-      // Reiniciar CAPTCHA en caso de error
-      if (window.turnstile) {
-        turnstile.reset();
-      }
-    }
-
-  } catch (error) {
-    console.error("Error en registro:", error);
-    mensaje.textContent = "Error de conexión con el servidor.";
-    mensaje.className = "error";
-
-    if (window.turnstile) {
       turnstile.reset();
     }
+  } catch (error) {
+    mensaje.textContent = "Error de conexión.";
+    mensaje.className = "error";
   }
 }
 
-/* ========================= 
+/* =========================
    CONSULTA IA
 ========================= */
 async function consultarIA() {
-
   const token = getToken();
   const preguntaInput = document.getElementById("pregunta");
   const chat = document.getElementById("chat");
@@ -196,34 +181,26 @@ async function consultarIA() {
   chat.appendChild(botMsg);
 
   try {
-
     const res = await fetch("/consulta", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer " + token
+        Authorization: "Bearer " + token,
       },
-      body: JSON.stringify({ pregunta })
+      body: JSON.stringify({ pregunta }),
     });
-
-    if (!res.ok) throw new Error("Error consulta");
 
     const data = await res.json();
 
     botMsg.innerText = data.respuesta || "Sin respuesta";
 
     if (data.limite) {
-      botMsg.innerHTML += `
-        <br><br>
-        <button onclick="upgradePremium()">🚀 Actualizar a PREMIUM</button>
-      `;
+      botMsg.innerHTML += `<br><br><button onclick="upgradePremium()">🚀 Actualizar a PREMIUM</button>`;
     }
 
     cargarEstadoUsuario();
-
   } catch (error) {
-    console.error(error);
-    botMsg.innerText = "❌ Error al consultar IA.";
+    botMsg.innerText = "❌ Error al consultar.";
   }
 }
 
@@ -231,24 +208,20 @@ async function consultarIA() {
    HISTORIAL
 ========================= */
 async function cargarHistorial() {
-
   const token = getToken();
   const chat = document.getElementById("chat");
   if (!chat) return;
 
   try {
-
     const res = await fetch("/historial", {
-      headers: { "Authorization": "Bearer " + token }
+      headers: { Authorization: "Bearer " + token },
     });
-
-    if (!res.ok) throw new Error("Error historial");
 
     const historial = await res.json();
 
     chat.innerHTML = "";
 
-    historial.forEach(item => {
+    historial.forEach((item) => {
       const u = document.createElement("div");
       u.className = "msg user";
       u.innerText = item.pregunta;
@@ -259,96 +232,70 @@ async function cargarHistorial() {
       b.innerText = item.respuesta;
       chat.appendChild(b);
     });
-
   } catch (error) {
     console.error(error);
   }
 }
 
-/* ========================= 
+/* =========================
    ESTADO USUARIO
 ========================= */
 async function cargarEstadoUsuario() {
-
   const token = getToken();
   const estado = document.getElementById("estado-usuario");
   if (!estado) return;
 
   try {
-
     const res = await fetch("/estado", {
-      headers: {
-        "Authorization": "Bearer " + token
-      }
+      headers: { Authorization: "Bearer " + token },
     });
-
-    if (!res.ok) throw new Error("Error estado");
 
     const data = await res.json();
 
-    const LIMITE_FREE = 2;
-
-    const esPremiumActivo =
+    const esPremium =
       data.subscription_status === "active" ||
       data.subscription_status === "trialing" ||
       data.tipo === "PREMIUM";
 
-    if (esPremiumActivo) {
-
+    if (esPremium) {
       estado.innerHTML = `
-        🌟 Usuario PREMIUM – Consultas ilimitadas
+        🌟 PREMIUM – ilimitado
         <br><br>
         <button onclick="cerrarSesion()">Cerrar sesión</button>
       `;
-
     } else {
-
-      const restantes = Math.max(0, LIMITE_FREE - (data.consultas_hoy || 0));
-
       estado.innerHTML = `
-        🟡 Usuario FREE – ${restantes} consultas restantes
+        🟡 FREE
         <br><br>
-        <button onclick="upgradePremium()">🚀 Actualizar a PREMIUM</button>
+        <button onclick="upgradePremium()">🚀 Premium</button>
         <br><br>
         <button onclick="cerrarSesion()">Cerrar sesión</button>
       `;
     }
-
   } catch (error) {
-    console.error(error);
-    estado.innerHTML = "⚠️ Error cargando estado.";
+    estado.innerHTML = "Error estado.";
   }
 }
 
 /* =========================
-   UPGRADE STRIPE
+   STRIPE
 ========================= */
 async function upgradePremium() {
-
   const token = getToken();
 
   try {
-
     const res = await fetch("/crear-sesion-checkout", {
       method: "POST",
-      headers: {
-        "Authorization": "Bearer " + token
-      }
+      headers: { Authorization: "Bearer " + token },
     });
-
-    if (!res.ok) throw new Error("Error pago");
 
     const data = await res.json();
 
     if (data.url) {
       window.location.href = data.url;
-    } else {
-      alert("Error al crear sesión de pago");
     }
-
   } catch (error) {
-    console.error(error);
-    alert("Error al iniciar pago");
+    alert("Error pago");
   }
 }
 
@@ -369,10 +316,10 @@ if (window.location.pathname.includes("chat.html")) {
 }
 
 /* =========================
-   MOSTRAR / OCULTAR CONTRASEÑA
+   MOSTRAR CONTRASEÑA
 ========================= */
-function togglePassword(inputId, icon) {
-  const input = document.getElementById(inputId);
+function togglePassword(id, icon) {
+  const input = document.getElementById(id);
 
   if (input.type === "password") {
     input.type = "text";
@@ -384,102 +331,48 @@ function togglePassword(inputId, icon) {
 }
 
 /* =========================
-   RECUPERAR CONTRASEÑA
+   RECUPERAR PASSWORD
 ========================= */
 async function recuperarPassword() {
-  const emailInput = document.getElementById("recoveryEmail");
+  const email = document.getElementById("recoveryEmail").value.trim();
   const mensaje = document.getElementById("mensaje");
-  const boton = document.getElementById("btnRecuperar");
 
-  if (!emailInput || !mensaje) return;
-
-  const email = emailInput.value.trim();
-
-  mensaje.textContent = "";
-  mensaje.className = "";
-
-  // Validar correo
   if (!email) {
-    mensaje.textContent = "Ingresa tu correo electrónico.";
+    mensaje.textContent = "Ingresa tu correo.";
     mensaje.className = "error";
     return;
   }
 
-  // Validar formato de correo
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    mensaje.textContent = "Ingresa un correo electrónico válido.";
-    mensaje.className = "error";
-    return;
-  }
-
-  // Obtener token de Cloudflare Turnstile
-  let captchaToken = "";
-  if (typeof turnstile !== "undefined") {
-    captchaToken = turnstile.getResponse();
-  }
+  const captchaToken = obtenerCaptcha();
 
   if (!captchaToken) {
-    mensaje.textContent = "Por favor, verifica que no eres un robot.";
+    mensaje.textContent = "Verifica CAPTCHA.";
     mensaje.className = "error";
     return;
-  }
-
-  // Deshabilitar botón para evitar múltiples envíos
-  if (boton) {
-    boton.disabled = true;
-    boton.textContent = "Enviando...";
   }
 
   try {
     const res = await fetch("/recuperar-password", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        email,
-        captchaToken
-      })
+      body: JSON.stringify({ email, captchaToken }),
     });
 
     const data = await res.json();
 
     if (data.success) {
-      mensaje.textContent =
-        "📩 Si el correo está registrado, recibirás un enlace para restablecer tu contraseña.";
+      mensaje.textContent = "Revisa tu correo.";
       mensaje.className = "success";
-      emailInput.value = "";
     } else {
-      mensaje.textContent =
-        data.message || "No se pudo procesar la solicitud.";
+      mensaje.textContent = data.message || "Error.";
       mensaje.className = "error";
     }
 
-    // Reiniciar CAPTCHA
-    if (typeof turnstile !== "undefined") {
-      turnstile.reset();
-    }
-
+    turnstile.reset();
   } catch (error) {
-    console.error("Error:", error);
-    mensaje.textContent = "Error de conexión con el servidor.";
+    mensaje.textContent = "Error conexión.";
     mensaje.className = "error";
-  } finally {
-    if (boton) {
-      boton.disabled = false;
-      boton.textContent = "Enviar solicitud";
-    }
   }
-}
-
-function toggleAllPasswords() {
-  const password = document.getElementById("password");
-  const confirmPassword = document.getElementById("confirmPassword");
-
-  if (!password || !confirmPassword) return;
-
-  const type = password.type === "password" ? "text" : "password";
-  password.type = type;
-  confirmPassword.type = type;
 }
