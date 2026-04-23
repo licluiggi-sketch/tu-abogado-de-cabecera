@@ -192,7 +192,55 @@ async function consultarIA() {
 
     const data = await res.json();
 
+    // Mostrar respuesta
     botMsg.innerText = data.respuesta || "Sin respuesta";
+
+    // 🚀 UPSELL AGRESIVO PRO
+    if (data.limite) {
+
+      botMsg.innerHTML += `
+        <div style="
+          margin-top:15px;
+          padding:15px;
+          border-radius:10px;
+          background:#fff3cd;
+          border:1px solid #ffeeba;
+          text-align:center;
+        ">
+          <h3>🚫 Límite alcanzado</h3>
+
+          <p><b>Solo tienes 2 consultas gratis al día</b></p>
+
+          <hr>
+
+          <p><b>⚖️ Con PREMIUM desbloqueas:</b></p>
+          <p>✔ Consultas ILIMITADAS</p>
+          <p>✔ Contratos listos para usar</p>
+          <p>✔ Cálculo de liquidaciones</p>
+          <p>✔ Asesoría legal más precisa</p>
+
+          <hr>
+
+          <p style="color:red;"><b>🔥 Oferta: Acceso inmediato</b></p>
+
+          <button onclick="upgradePremium()" style="
+            background:#28a745;
+            color:white;
+            padding:10px 20px;
+            border:none;
+            border-radius:8px;
+            cursor:pointer;
+            font-size:16px;
+         ">
+            🚀 Activar PREMIUM
+         </button>
+       </div>
+     `;
+
+     // 🔒 BLOQUEAR INPUT
+     const input = document.getElementById("pregunta");
+     if (input) input.disabled = true;
+    }
 
     if (data.limite) {
       botMsg.innerHTML += `<br><br><button onclick="upgradePremium()">🚀 Actualizar a PREMIUM</button>`;
