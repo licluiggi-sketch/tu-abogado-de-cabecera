@@ -3,13 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - Tu Abogado de Cabecera</title>
+  <meta name="google-site-verification" content="VcV08SyKSiK5c6zmeRiRZOpiMZJ0fCXKm9NBo16S9RI" />
+  
+  <!-- SEO PRO -->
+  <title>Tu Abogado de Cabecera | Asesoría Legal Online en México</title>
 
+  <meta name="description" content="Obtén asesoría legal inmediata en México. Consulta dudas laborales, contratos, despidos, liquidaciones y más con inteligencia artificial legal. Prueba gratis y accede a planes premium.">
+
+  <meta name="keywords" content="abogado online México, asesoría legal, derecho laboral, contratos, liquidación, despido injustificado, abogado IA, abogado laboral, consulta legal">
+
+  <meta name="robots" content="index, follow">
+
+  <meta name="author" content="Tu Abogado de Cabecera">
+
+  <!-- Open Graph (Facebook / WhatsApp) -->
+  <meta property="og:title" content="Tu Abogado de Cabecera | Asesoría Legal Online">
+  <meta property="og:description" content="Consulta legal inmediata en México con IA. Derecho laboral, contratos, despidos y más.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tu-abogado-de-cabecera.onrender.com">
+  <meta property="og:image" content="https://tu-abogado-de-cabecera.onrender.com/logo.png">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Tu Abogado de Cabecera">
+  <meta name="twitter:description" content="Asesoría legal inmediata en México con IA legal">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://tu-abogado-de-cabecera.onrender.com">
+
+  <!-- Favicon -->
   <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+  <!-- CSS -->
   <link rel="stylesheet" href="style.css">
 
-  <!-- ✅ Cloudflare Turnstile (UNA SOLA VEZ) -->
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <!-- Cloudflare Turnstile (UNA SOLA VEZ) -->
+  <script
+    src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+    async
+    defer>
+  </script>
 
   <style>
     .password-container {
@@ -20,6 +53,7 @@
     .password-container input {
       width: 100%;
       padding-right: 40px;
+      box-sizing: border-box;
     }
 
     .toggle-password {
@@ -30,12 +64,20 @@
       cursor: pointer;
       font-size: 18px;
       color: #555;
+      user-select: none;
     }
 
     .captcha-container {
-      margin: 15px 0;
+      margin: 20px 0;
       display: flex;
       justify-content: center;
+      align-items: center;
+    }
+
+    #mensaje {
+      margin-top: 15px;
+      min-height: 24px;
+      font-weight: 500;
     }
   </style>
 </head>
@@ -43,36 +85,79 @@
 <body>
 
   <div class="container">
-    <h2>⚖️ Tu Abogado de Cabecera</h2>
 
-    <input type="email" id="email" placeholder="Correo electrónico" required>
+    <h1>⚖️ Tu Abogado de Cabecera</h1>
+
+    <p>
+      Asesoría legal rápida, clara y profesional en México
+    </p>
+
+    <input
+      type="email"
+      id="email"
+      placeholder="Correo electrónico"
+      autocomplete="email"
+      required
+    >
 
     <div class="password-container">
-      <input type="password" id="password" placeholder="Contraseña" required>
-      <span class="toggle-password" onclick="togglePassword('password', this)">👁️</span>
+      <input
+        type="password"
+        id="password"
+        placeholder="Contraseña"
+        autocomplete="current-password"
+        required
+      >
+
+      <span
+        class="toggle-password"
+        onclick="togglePassword('password', this)"
+      >
+        👁️
+      </span>
     </div>
 
-    <!-- ✅ CAPTCHA CORRECTO -->
+    <!-- CAPTCHA -->
     <div class="captcha-container">
-      <div 
+      <div
         class="cf-turnstile"
         data-sitekey="0x4AAAAAACpoFVzsoLy-jhC3"
-        data-theme="light">
+        data-theme="light"
+        data-size="normal">
       </div>
     </div>
 
-    <button onclick="login()">Ingresar</button>
+    <button onclick="login()">
+      Ingresar
+    </button>
 
     <p id="mensaje"></p>
 
     <p>
-      <a href="recuperar.html">¿Olvidaste tu contraseña?</a>
+      <a href="recuperar.html">
+        ¿Olvidaste tu contraseña?
+      </a>
     </p>
 
     <p>
       ¿No tienes cuenta?
-      <a href="register.html">Regístrate aquí</a>
+      <a href="register.html">
+        Regístrate aquí
+      </a>
     </p>
+
+    <p>
+      <a href="landing.html">
+        🚀 Conoce el Plan Premium
+      </a>
+    </p>
+
+    <p>
+      <a href="abogados.html">
+        👨‍⚖️ Directorio de Abogados
+      </a>
+    </p>
+
   </div>
 
   <script src="app.js"></script>
