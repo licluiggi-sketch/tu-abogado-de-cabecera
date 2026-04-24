@@ -424,3 +424,40 @@ async function recuperarPassword() {
     mensaje.className = "error";
   }
 }
+
+/* =========================
+   CARGAR ABOGADOS
+========================= */
+async function cargarAbogados() {
+  const cont = document.getElementById("lista-abogados");
+  if (!cont) return;
+
+  try {
+    const res = await fetch("/abogados");
+    const data = await res.json();
+
+    if (data.length === 0) {
+      cont.innerHTML = "No hay abogados disponibles.";
+      return;
+    }
+
+    cont.innerHTML = data.map(a => `
+      <div style="
+        border:1px solid #ccc;
+        padding:10px;
+        border-radius:8px;
+        margin-bottom:10px;
+      ">
+        <b>${a.nombre}</b><br>
+        ⚖️ ${a.especialidad}<br>
+        📍 ${a.ciudad}<br>
+        📞 ${a.telefono}<br>
+        ✉️ ${a.email}
+      </div>
+    `).join("");
+
+  } catch (error) {
+    console.error(error);
+    cont.innerHTML = "Error cargando abogados.";
+  }
+}

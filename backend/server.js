@@ -242,6 +242,17 @@ CREATE TABLE IF NOT EXISTS password_resets (
 )
 `);
 
+db.run(`
+  CREATE TABLE IF NOT EXISTS abogados (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT,
+    especialidad TEXT,
+    telefono TEXT,
+    email TEXT,
+    ciudad TEXT
+  )
+`);
+
 /* =========================
    OPENAI
 ========================= */
@@ -664,6 +675,19 @@ app.get("/historial", verificarToken, (req, res) => {
       res.json(rows);
     }
   );
+});
+
+/* =========================
+   LISTA DE ABOGADOS
+========================= */
+app.get("/abogados", (req, res) => {
+  db.all("SELECT * FROM abogados", [], (err, rows) => {
+    if (err) {
+      console.error(err);
+      return res.json([]);
+    }
+    res.json(rows);
+  });
 });
 
 /* =========================
