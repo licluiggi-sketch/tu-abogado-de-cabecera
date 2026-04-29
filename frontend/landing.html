@@ -1,47 +1,320 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-MX">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- SEO PRINCIPAL -->
   <title>Asesoría Legal Online en México | Tu Abogado de Cabecera</title>
+
+  <meta name="description" content="Consulta legal inmediata en México con inteligencia artificial. Resuelve dudas sobre despidos, contratos, liquidaciones, derecho laboral y asesoría legal profesional. Prueba gratis 2 consultas al día.">
+
+  <meta name="keywords" content="asesoría legal México, abogado online, consulta legal IA, derecho laboral México, liquidación laboral, contratos legales, despido injustificado, abogado laboral, asesoría jurídica">
+
+  <meta name="author" content="Tu Abogado de Cabecera">
+
+  <meta name="robots" content="index, follow">
+
+  <!-- GOOGLE SEARCH CONSOLE -->
   <meta name="google-site-verification" content="VcV08SyKSiK5c6zmeRiRZOpiMZJ0fCXKm9NBo16S9RI" />
 
-  <meta name="description" content="Consulta legal inmediata en México. Resuelve dudas laborales, contratos y despidos. Prueba gratis con IA legal.">
+  <!-- OPEN GRAPH (Facebook / WhatsApp) -->
+  <meta property="og:title" content="Tu Abogado de Cabecera | Asesoría Legal Online en México">
+  <meta property="og:description" content="Consulta legal inmediata con IA. Contratos, liquidaciones, despidos y asesoría legal en México.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tu-abogado-de-cabecera.onrender.com/landing.html">
+  <meta property="og:image" content="https://tu-abogado-de-cabecera.onrender.com/favicon.ico">
 
+  <!-- TWITTER -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Tu Abogado de Cabecera">
+  <meta name="twitter:description" content="Asesoría legal inmediata con inteligencia artificial en México.">
+
+  <!-- CANONICAL -->
+  <link rel="canonical" href="https://tu-abogado-de-cabecera.onrender.com/landing.html">
+
+  <!-- FAVICON -->
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+  <!-- CSS -->
   <link rel="stylesheet" href="style.css">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7fa;
+      color: #222;
+      line-height: 1.6;
+    }
+
+    .hero {
+      background: #111;
+      color: white;
+      padding: 70px 20px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 38px;
+      margin-bottom: 15px;
+    }
+
+    .hero p {
+      font-size: 19px;
+      max-width: 800px;
+      margin: 0 auto 30px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 14px 24px;
+      margin: 8px;
+      border: none;
+      border-radius: 8px;
+      background: #00c853;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .btn:hover {
+      opacity: 0.92;
+    }
+
+    .section {
+      padding: 50px 20px;
+      max-width: 1100px;
+      margin: auto;
+      text-align: center;
+    }
+
+    .section h2 {
+      margin-bottom: 25px;
+      font-size: 30px;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .pricing {
+      background: #ffffff;
+      padding: 60px 20px;
+    }
+
+    .plans {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    .plan {
+      border: 2px solid #ddd;
+      padding: 30px;
+      border-radius: 14px;
+      background: white;
+    }
+
+    .premium {
+      border-color: #00c853;
+      transform: scale(1.02);
+    }
+
+    .price {
+      font-size: 30px;
+      font-weight: bold;
+      margin: 15px 0;
+    }
+
+    ul {
+      padding-left: 20px;
+      text-align: left;
+      max-width: 700px;
+      margin: auto;
+    }
+
+    .footer {
+      background: #111;
+      color: white;
+      padding: 35px 20px;
+      text-align: center;
+      margin-top: 50px;
+    }
+
+    .footer a {
+      color: #00e676;
+      text-decoration: none;
+    }
+  </style>
 </head>
 
 <body>
 
-  <div class="container">
-
-    <h1>⚖️ Asesoría Legal Online en México</h1>
+  <!-- HERO -->
+  <section class="hero">
+    <h1>⚖️ Tu Abogado de Cabecera</h1>
 
     <p>
-      Consulta tus dudas legales al instante:
-      despidos, contratos, liquidaciones y más.
+      Asesoría legal inmediata en México con Inteligencia Artificial.
+      Resuelve dudas sobre despidos, contratos, liquidaciones,
+      derecho laboral y consulta abogados reales.
     </p>
 
+    <a href="register.html" class="btn">
+      Crear cuenta gratis
+    </a>
+
+    <a href="index.html" class="btn">
+      Iniciar sesión
+    </a>
+  </section>
+
+  <!-- BENEFICIOS -->
+  <section class="section">
     <h2>¿Qué puedes hacer?</h2>
+
+    <div class="cards">
+      <div class="card">
+        📄 Generar contratos legales
+      </div>
+
+      <div class="card">
+        ⚖️ Consultar leyes laborales
+      </div>
+
+      <div class="card">
+        💰 Calcular liquidaciones
+      </div>
+
+      <div class="card">
+        🤖 Asesoría legal inmediata
+      </div>
+
+      <div class="card">
+        👨‍⚖️ Buscar abogados reales
+      </div>
+
+      <div class="card">
+        📥 Descargar documentos PDF / Word
+      </div>
+    </div>
+  </section>
+
+  <!-- PLANES -->
+  <section class="pricing">
+    <div class="section">
+      <h2>Planes disponibles</h2>
+
+      <div class="plans">
+
+        <div class="plan">
+          <h3>Plan Gratis</h3>
+
+          <div class="price">
+            $0
+          </div>
+
+          <p>Ideal para probar la plataforma</p>
+
+          <ul>
+            <li>✔ 2 consultas al día</li>
+            <li>✔ Respuestas legales básicas</li>
+            <li>✔ Acceso inicial al sistema</li>
+            <li>❌ Sin contratos descargables</li>
+            <li>❌ Sin cálculos avanzados</li>
+          </ul>
+        </div>
+
+        <div class="plan premium">
+          <h3>Plan PREMIUM PRO</h3>
+
+          <div class="price">
+            $99 MXN / mes
+          </div>
+
+          <p>Para empresarios, trabajadores y abogados</p>
+
+          <ul>
+            <li>✔ Consultas ilimitadas</li>
+            <li>✔ Generación de contratos</li>
+            <li>✔ Cálculo de liquidaciones</li>
+            <li>✔ PDF y Word descargables</li>
+            <li>✔ Historial completo</li>
+            <li>✔ Prioridad y futuras mejoras</li>
+          </ul>
+
+          <br>
+
+          <a href="register.html" class="btn">
+            🚀 Empezar ahora
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- VALOR -->
+  <section class="section">
+    <h2>¿Por qué usar Tu Abogado de Cabecera?</h2>
+
     <ul>
-      <li>✔️ Resolver dudas legales</li>
-      <li>✔️ Calcular liquidaciones</li>
-      <li>✔️ Generar contratos</li>
-      <li>✔️ Consultar abogados reales</li>
+      <li>✔ Respuestas legales inmediatas 24/7</li>
+      <li>✔ Ahorra miles de pesos en consultas iniciales</li>
+      <li>✔ Ideal para patrones, trabajadores y pequeños empresarios</li>
+      <li>✔ Automatiza contratos y procesos legales</li>
+      <li>✔ Escalable para despachos y abogados independientes</li>
     </ul>
+  </section>
 
-    <h2>💡 Prueba GRATIS</h2>
-    <p>2 consultas diarias sin costo</p>
+  <!-- DIRECTORIO -->
+  <section class="section">
+    <h2>👨‍⚖️ ¿Necesitas un abogado real?</h2>
 
-    <a href="index.html">
-      <button>🚀 Probar ahora</button>
+    <p>
+      También puedes consultar nuestro directorio de abogados
+      para contactar especialistas directamente.
+    </p>
+
+    <a href="abogados.html" class="btn">
+      Ver Directorio de Abogados
     </a>
+  </section>
 
-    <h2>👨‍⚖️ ¿Necesitas un abogado?</h2>
-    <a href="abogados.html">
-      Ver directorio de abogados
-    </a>
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>
+      © 2026 Tu Abogado de Cabecera
+    </p>
 
-  </div>
+    <p>
+      Plataforma de asesoría legal digital en México
+    </p>
+
+    <p>
+      Sitio oficial:
+      tu-abogado-de-cabecera.onrender.com
+    </p>
+  </footer>
 
 </body>
 </html>
