@@ -19,6 +19,16 @@ const fetch = (...args) =>
 
 const app = express();
 
+app.get('/sitemap.xml', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'sitemap.xml'));
+});
+
+app.get('/robots.txt', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'robots.txt'));
+});
+
+app.use(express.static(path.join(__dirname, 'frontend')));
+
 // Permitir proxies de Render
 app.set("trust proxy", 1);
 
