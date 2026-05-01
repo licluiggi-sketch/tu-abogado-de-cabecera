@@ -19,15 +19,20 @@ const fetch = (...args) =>
 
 const app = express();
 
-app.get('/sitemap.xml', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'sitemap.xml'));
+/* IMPORTANTE: estas rutas deben ir antes de express.static */
+
+app.get("/sitemap.xml", (req, res) => {
+  res.type("application/xml");
+  res.sendFile(path.resolve(__dirname, "frontend", "sitemap.xml"));
 });
 
-app.get('/robots.txt', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'robots.txt'));
+app.get("/robots.txt", (req, res) => {
+  res.type("text/plain");
+  res.sendFile(path.resolve(__dirname, "frontend", "robots.txt"));
 });
 
-app.use(express.static(path.join(__dirname, 'frontend')));
+/* Archivos estáticos */
+app.use(express.static(path.resolve(__dirname, "frontend")));
 
 // Permitir proxies de Render
 app.set("trust proxy", 1);
