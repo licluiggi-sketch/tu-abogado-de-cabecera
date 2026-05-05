@@ -26,8 +26,8 @@ const PORT = process.env.PORT || 3000;
 const SECRET = process.env.JWT_SECRET || "abogado_secret_2026";
 const BASE_URL = process.env.BASE_URL;
 
-/* Ruta correcta al frontend (IMPORTANTE) */
-const FRONTEND_PATH = path.resolve(__dirname, "frontend");
+// ✅ correcto para tu estructura
+const FRONTEND_PATH = path.resolve(__dirname, "../frontend");
 
 /* =========================
    RATE LIMIT
