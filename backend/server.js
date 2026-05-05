@@ -19,30 +19,15 @@ const fetch = (...args) =>
 
 const app = express();
 
-/* IMPORTANTE: estas rutas deben ir antes de express.static */
-
-app.get("/sitemap.xml", (req, res) => {
-  res.type("application/xml");
-  res.sendFile(path.resolve(__dirname, "frontend", "sitemap.xml"));
-});
-
-app.get("/robots.txt", (req, res) => {
-  res.type("text/plain");
-  res.sendFile(path.resolve(__dirname, "frontend", "robots.txt"));
-});
-
-/* Archivos estáticos */
-app.use(express.static(path.resolve(__dirname, "frontend")));
-
-// Permitir proxies de Render
-app.set("trust proxy", 1);
-
 /* =========================
-   CONFIGURACIÓN
+   CONFIGURACIÓN BASE
 ========================= */
 const PORT = process.env.PORT || 3000;
 const SECRET = process.env.JWT_SECRET || "abogado_secret_2026";
 const BASE_URL = process.env.BASE_URL;
+
+/* Ruta correcta al frontend (IMPORTANTE) */
+const FRONTEND_PATH = path.resolve(__dirname, "frontend");
 
 /* =========================
    RATE LIMIT
@@ -53,10 +38,17 @@ const chatLimiter = rateLimit({
 });
 
 /* =========================
-   RUTAS FRONTEND
+   SEO: SITEMAP Y ROBOTS
 ========================= */
-const FRONTEND_PATH = path.join(__dirname, "../frontend");
-const PUBLIC_PATH = path.join(__dirname, "../frontend/public");
+app.get("/sitemap.xml", (req, res) => {
+  res.type("application/xml");
+  res.sendFile(path.resolve(FRONTEND_PATH, "sitemap.xml"));
+});
+
+app.get("/robots.txt", (req, res) => {
+  res.type("text/plain");
+  res.sendFile(path.resolve(FRONTEND_PATH, "robots.txt"));
+});
 
 /* =========================
    STRIPE WEBHOOK
@@ -207,6 +199,8 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+app.set("trust proxy", 1);
 
 app.use(express.json());
 
@@ -757,13 +751,15 @@ app.get("/health", (req, res) => {
 });
 
 /* =========================
-   SERVIR FRONTEND
+   SERVIR FRONTEND (FINAL)
 ========================= */
-app.use(express.static(FRONTEND_PATH));
-app.use(express.static(PUBLIC_PATH));
 
+/* Archivos estáticos */
+app.use(express.static(FRONTEND_PATH));
+
+/* Página principal (SEO) */
 app.get("/", (req, res) => {
-  res.sendFile(path.join(FRONTEND_PATH, "index.html"));
+  res.sendFile(path.resolve(FRONTEND_PATH, "landing.html"));
 });
 
 /* =========================
