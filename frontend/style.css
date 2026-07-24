@@ -101,6 +101,28 @@ body {
   margin-bottom: 10px;
 }
 
+.legal-warning {
+  max-width: 900px;
+  margin: 25px auto 0 auto;
+  background: #fff3cd;
+  color: #856404;
+  padding: 15px;
+  border-radius: 10px;
+  border: 1px solid #ffeeba;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.chat-disclaimer{
+  background:#fff3cd;
+  color:#856404;
+  padding:12px;
+  border-radius:8px;
+  margin-bottom:15px;
+  font-size:14px;
+  border:1px solid #ffeeba;
+}
+
 /* =========================
    MENSAJES
 ========================= */
