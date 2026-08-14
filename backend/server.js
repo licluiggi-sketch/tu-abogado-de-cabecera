@@ -754,10 +754,18 @@ app.get("/health", (req, res) => {
    SERVIR FRONTEND (FINAL)
 ========================= */
 
-/* Archivos estáticos */
-app.use(express.static(FRONTEND_PATH));
+/*
+  Servimos los archivos del frontend,
+  pero evitamos que Express entregue index.html
+  automáticamente al entrar a "/".
+*/
+app.use(
+  express.static(FRONTEND_PATH, {
+    index: false,
+  })
+);
 
-/* Página principal (SEO) */
+/* Página principal pública de AbogaIA */
 app.get("/", (req, res) => {
   res.sendFile(path.resolve(FRONTEND_PATH, "landing.html"));
 });
