@@ -1,22 +1,51 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>AbogaIA | Consulta Legal</title>
+  <!-- IDENTIDAD DE ABOGAIA -->
+  <title>Consulta Jurídica | AbogaIA - Tu Abogado de Cabecera</title>
 
-  <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <meta
+    name="description"
+    content="Área de consultas jurídicas de AbogaIA. Obtén orientación legal general con inteligencia artificial para México."
+  >
+
+  <meta
+    name="author"
+    content="AbogaIA - Tu Abogado de Cabecera"
+  >
+
+  <!-- NO INDEXAR EL AREA DE CONSULTAS -->
+  <meta name="robots" content="noindex, nofollow">
+
+  <!-- ICONO DE ABOGAIA -->
+  <link
+    rel="icon"
+    type="image/png"
+    sizes="192x192"
+    href="/icon-192.png"
+  >
+
+  <!-- CONFIGURACION PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0f172a">
+
+  <!-- HOJA DE ESTILOS -->
+  <link rel="stylesheet" href="/style.css">
+
 </head>
 
 <body>
 
   <div class="chat-container">
 
-    <!-- HEADER -->
+    <!-- ENCABEZADO -->
     <div class="chat-header">
-      <h2>⚖️ Tu Abogado de Cabecera</h2>
+      <h2>⚖️ AbogaIA</h2>
+      <p>Tu Abogado de Cabecera</p>
     </div>
 
     <!-- ESTADO DEL USUARIO -->
@@ -24,35 +53,70 @@
       Cargando estado...
     </div>
 
+    <!-- INFORMACION DEL PLAN GRATUITO Y PREMIUM -->
     <div style="
-      background:#e9f7ef;
-      padding:10px;
-      border-radius:8px;
-      margin-bottom:10px;
-      text-align:center;
+      background: #e9f7ef;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      text-align: center;
     ">
-      ⚖️ Prueba gratuita: 2 consultas por día  
-      👉 Desbloquea ilimitado con PREMIUM
+      ⚖️ Prueba gratuita: 2 consultas por día.
+      <strong>Desbloquea consultas ilimitadas con PREMIUM.</strong>
     </div>
 
+    <!-- AVISO LEGAL -->
     <div class="chat-disclaimer">
-       ⚖️ Orientación legal general basada en legislación mexicana.
-       No sustituye asesoría profesional ni crea relación abogado-cliente.
+      ⚖️ AbogaIA proporciona orientación jurídica general
+      relacionada con el derecho mexicano.
+
+      Las respuestas generadas por inteligencia artificial
+      pueden contener errores o información desactualizada.
+
+      No sustituyen la asesoría de un abogado,
+      ni crean una relación abogado-cliente.
     </div>
 
-    <!-- CHAT -->
-    <div id="chat" class="chat-box"></div>
+    <!-- AREA DE CONVERSACION -->
+    <div
+      id="chat"
+      class="chat-box"
+      role="log"
+      aria-live="polite"
+      aria-label="Conversación de orientación jurídica"
+    ></div>
 
-    <!-- INPUT -->
-    <textarea id="pregunta" placeholder="Escribe tu consulta legal..."></textarea>
-    <button onclick="consultarIA()">Consultar</button>
+    <!-- CAMPO DE CONSULTA -->
+    <textarea
+      id="pregunta"
+      placeholder="Escribe aquí tu consulta jurídica..."
+      aria-label="Escribe tu consulta jurídica"
+    ></textarea>
+
+    <!-- BOTON DE CONSULTA -->
+    <button
+      type="button"
+      onclick="consultarIA()"
+    >
+      Consultar
+    </button>
 
   </div>
 
-<p style="font-size:13px; opacity:0.9;">
-  La plataforma proporciona orientación legal general y no sustituye asesoría jurídica profesional.
-</p>
+  <!-- AVISO INFORMATIVO INFERIOR -->
+  <p style="
+    font-size: 13px;
+    opacity: 0.9;
+    text-align: center;
+    padding: 10px;
+  ">
+    AbogaIA es una herramienta de orientación jurídica general.
+    No sustituye la asesoría profesional de un abogado.
+  </p>
 
-  <script src="app.js"></script>
+  <!-- JAVASCRIPT PRINCIPAL -->
+  <script src="/app.js"></script>
+
 </body>
 </html>
+

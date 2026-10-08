@@ -1,16 +1,94 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Crear cuenta | AbogaIA</title>
 
-  <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <!-- IDENTIDAD DE ABOGAIA -->
+  <title>Crear cuenta | AbogaIA - Tu Abogado de Cabecera</title>
 
-  <!-- Cloudflare Turnstile -->
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <!-- DESCRIPCION -->
+  <meta
+    name="description"
+    content="Crea tu cuenta gratuita en AbogaIA, plataforma de orientación jurídica con inteligencia artificial para México. Comprende tus derechos, consulta dudas legales y conoce tus opciones."
+  >
 
+  <meta
+    name="author"
+    content="AbogaIA - Tu Abogado de Cabecera"
+  >
+
+  <!-- SEO: NO INDEXAR FORMULARIO DE REGISTRO -->
+  <meta name="robots" content="noindex, follow">
+
+  <!-- OPEN GRAPH: FACEBOOK Y WHATSAPP -->
+  <meta
+    property="og:title"
+    content="AbogaIA | Crea tu cuenta gratuita"
+  >
+
+  <meta
+    property="og:description"
+    content="Regístrate en AbogaIA y comienza a consultar tus dudas legales con inteligencia artificial."
+  >
+
+  <meta property="og:type" content="website">
+
+  <meta
+    property="og:url"
+    content="https://tu-abogado-de-cabecera.onrender.com/register.html"
+  >
+
+  <meta
+    property="og:image"
+    content="https://tu-abogado-de-cabecera.onrender.com/icon-512.png"
+  >
+
+  <!-- TWITTER / X -->
+  <meta name="twitter:card" content="summary">
+
+  <meta
+    name="twitter:title"
+    content="AbogaIA | Tu Abogado de Cabecera"
+  >
+
+  <meta
+    name="twitter:description"
+    content="Crea tu cuenta gratuita y accede a orientación jurídica inteligente para México."
+  >
+
+  <!-- URL CANONICA DEL REGISTRO -->
+  <link
+    rel="canonical"
+    href="https://tu-abogado-de-cabecera.onrender.com/register.html"
+  >
+
+  <!-- ICONO DE ABOGAIA -->
+  <link
+    rel="icon"
+    type="image/png"
+    sizes="192x192"
+    href="/icon-192.png"
+  >
+
+  <!-- CONFIGURACION PWA -->
+  <link rel="manifest" href="/manifest.json">
+
+  <meta name="theme-color" content="#0f172a">
+
+  <!-- HOJA DE ESTILOS PRINCIPAL -->
+  <link rel="stylesheet" href="/style.css">
+
+  <!-- CLOUDFLARE TURNSTILE -->
+  <!-- Mantener una sola carga de este script -->
+  <script
+    src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+    async
+    defer>
+  </script>
+
+  <!-- ESTILOS DEL FORMULARIO DE REGISTRO -->
   <style>
     .password-container {
       position: relative;
@@ -20,6 +98,7 @@
     .password-container input {
       width: 100%;
       padding-right: 40px;
+      box-sizing: border-box;
     }
 
     .toggle-password {
@@ -30,6 +109,7 @@
       cursor: pointer;
       font-size: 18px;
       color: #555;
+      user-select: none;
     }
 
     .checkbox-container {
@@ -59,7 +139,9 @@
       cursor: pointer;
     }
   </style>
+
 </head>
+
 <body>
 
   <div class="container">
