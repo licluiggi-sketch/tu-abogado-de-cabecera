@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es-MX">
 <head>
@@ -5,308 +6,397 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- SEO PRINCIPAL -->
-  <title>AbogaIA | Asesoría Jurídica Inteligente para México</title>
+  <title>AbogaIA | Orientación Jurídica Inteligente para México</title>
 
-  <meta name="description" content="AbogaIA ofrece orientación jurídica inicial con inteligencia artificial para México. Comprende dudas legales en lenguaje sencillo, conoce opciones y descubre cuándo acudir a un especialista.">
-
-  <meta name="keywords" content="asesoría legal México, abogado online, consulta legal IA, derecho laboral México">
+  <meta name="description" content="AbogaIA ofrece orientación jurídica inicial con inteligencia artificial para México. Comprende tus derechos, conoce tus opciones y descubre cuándo acudir a un abogado especialista.">
 
   <meta name="author" content="AbogaIA - Tu Abogado de Cabecera">
-
   <meta name="robots" content="index, follow">
 
   <!-- GOOGLE SEARCH CONSOLE -->
-  <meta name="google-site-verification" content="VcV08SyKSiK5c6zmeRiRZOpiMZJ0fCXKm9NBo16S9RI" />
+  <meta name="google-site-verification" content="VcV08SyKSiK5c6zmeRiRZOpiMZJ0fCXKm9NBo16S9RI">
 
-  <!-- OPEN GRAPH (Facebook / WhatsApp) -->
+  <!-- OPEN GRAPH -->
   <meta property="og:title" content="AbogaIA | Orientación Jurídica Inteligente en México">
-  <meta property="og:description" content="Resuelve tus dudas legales con inteligencia artificial. Comprende tus derechos, conoce tus opciones y descubre cuándo necesitas un abogado especialista.">
-  <meta property="og:image" content="https://tu-abogado-de-cabecera.onrender.com/icon-512.png">
+  <meta property="og:description" content="Comprende tus derechos y conoce tus opciones mediante orientación jurídica con inteligencia artificial.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://tu-abogado-de-cabecera.onrender.com/">
-  
-  <!-- TWITTER -->
+  <meta property="og:image" content="https://tu-abogado-de-cabecera.onrender.com/icon-512.png">
+
+  <!-- TWITTER / X -->
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="AbogaIA | Tu Abogado de Cabecera">
-  <meta name="twitter:description" content="Orientación jurídica inteligente para México. Comprende tus derechos y conoce tus opciones.">
+  <meta name="twitter:description" content="Orientación jurídica inteligente para México.">
 
   <!-- CANONICAL -->
   <link rel="canonical" href="https://tu-abogado-de-cabecera.onrender.com/">
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="style.css">
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="icon" type="image/png" href="/icon-192.png">
 
+  <!-- CSS GENERAL -->
+  <link rel="stylesheet" href="/style.css">
+
+  <!-- ESTILOS EXCLUSIVOS DE LA PORTADA -->
   <style>
-    * {
+    *,
+    *::before,
+    *::after {
       box-sizing: border-box;
     }
 
-    body {
+    html {
+      width: 100%;
       margin: 0;
+    }
+
+    body.abogaia-landing {
+      display: block !important;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
       font-family: Arial, sans-serif;
       background: #f5f7fa;
-      color: #222;
+      color: #1e293b;
       line-height: 1.6;
     }
 
-    .hero {
-      background: #111;
-      color: white;
-      padding: 70px 20px;
+    .abogaia-landing main {
+      display: block;
+      width: 100%;
+    }
+
+    .abogaia-landing .hero {
+      display: block;
+      width: 100%;
+      padding: 75px 20px;
+      background: linear-gradient(135deg, #0f172a, #163968);
+      color: #fff;
       text-align: center;
     }
 
-    .hero h1 {
-      font-size: 38px;
-      margin-bottom: 15px;
+    .abogaia-landing .hero-inner {
+      max-width: 900px;
+      margin: 0 auto;
     }
 
-    .hero p {
-      font-size: 19px;
-      max-width: 800px;
-      margin: 0 auto 30px;
+    .abogaia-landing .hero h1 {
+      margin: 0 0 12px;
+      color: #f3c76a;
+      font-size: clamp(36px, 6vw, 58px);
     }
 
-    .btn {
-      display: inline-block;
-      padding: 14px 24px;
-      margin: 8px;
-      border: none;
-      border-radius: 8px;
-      background: #00c853;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-      text-decoration: none;
-      font-weight: bold;
+    .abogaia-landing .hero h2 {
+      margin: 0 0 22px;
+      color: #fff;
+      font-size: clamp(21px, 3vw, 30px);
+      font-weight: 500;
     }
 
-    .btn:hover {
-      opacity: 0.92;
+    .abogaia-landing .hero p {
+      max-width: 780px;
+      margin: 0 auto 18px;
+      color: #e2e8f0;
+      font-size: 17px;
     }
 
-    .section {
-      padding: 50px 20px;
-      max-width: 1100px;
-      margin: auto;
-      text-align: center;
-    }
-
-    .section h2 {
-      margin-bottom: 25px;
-      font-size: 30px;
-    }
-
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 20px;
+    .abogaia-landing .actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
       margin-top: 30px;
     }
 
-    .card {
-      background: white;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-
-    .pricing {
-      background: #ffffff;
-      padding: 60px 20px;
-    }
-
-    .plans {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 25px;
-      max-width: 1000px;
-      margin: auto;
-    }
-
-    .plan {
-      border: 2px solid #ddd;
-      padding: 30px;
-      border-radius: 14px;
-      background: white;
-    }
-
-    .premium {
-      border-color: #00c853;
-      transform: scale(1.02);
-    }
-
-    .price {
-      font-size: 30px;
-      font-weight: bold;
-      margin: 15px 0;
-    }
-
-    ul {
-      padding-left: 20px;
-      text-align: left;
-      max-width: 700px;
-      margin: auto;
-    }
-
-    .footer {
-      background: #111;
+    .abogaia-landing .btn {
+      display: inline-block;
+      width: auto;
+      max-width: 100%;
+      padding: 13px 24px;
+      border: 0;
+      border-radius: 9px;
+      background: #16a34a;
       color: white;
-      padding: 35px 20px;
+      font-size: 16px;
+      font-weight: bold;
       text-align: center;
-      margin-top: 50px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
     }
 
-    .footer a {
-      color: #00e676;
+    .abogaia-landing .btn:hover {
+      opacity: 0.88;
+    }
+
+    .abogaia-landing .btn-secondary {
+      background: #fff;
+      color: #0f172a;
+    }
+
+    .abogaia-landing .section {
+      display: block;
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 55px 20px;
+      text-align: center;
+    }
+
+    .abogaia-landing .section h2 {
+      margin: 0 0 28px;
+      font-size: clamp(24px, 3vw, 32px);
+      color: #0f172a;
+    }
+
+    .abogaia-landing .cards {
+      display: grid;
+      width: 100%;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+      margin-top: 25px;
+    }
+
+    .abogaia-landing .card {
+      min-width: 0;
+      padding: 25px;
+      border: 1px solid #e2e8f0;
+      border-radius: 13px;
+      background: white;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
+      overflow-wrap: anywhere;
+    }
+
+    .abogaia-landing .card h3 {
+      margin-top: 0;
+      color: #0f172a;
+    }
+
+    .abogaia-landing .card p {
+      margin-bottom: 0;
+    }
+
+    .abogaia-landing .pricing {
+      display: block;
+      width: 100%;
+      background: #eaf0f8;
+    }
+
+    .abogaia-landing .plans {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px;
+      max-width: 850px;
+      margin: 0 auto;
+    }
+
+    .abogaia-landing .plan {
+      min-width: 0;
+      padding: 32px 25px;
+      border: 2px solid #d5deea;
+      border-radius: 15px;
+      background: white;
+      text-align: left;
+    }
+
+    .abogaia-landing .plan h3,
+    .abogaia-landing .plan .price,
+    .abogaia-landing .plan .plan-intro,
+    .abogaia-landing .plan .plan-action {
+      text-align: center;
+    }
+
+    .abogaia-landing .plan h3 {
+      margin-top: 0;
+      font-size: 23px;
+    }
+
+    .abogaia-landing .premium {
+      border-color: #16a34a;
+    }
+
+    .abogaia-landing .price {
+      margin: 15px 0;
+      font-size: 32px;
+      font-weight: bold;
+      color: #0f172a;
+    }
+
+    .abogaia-landing .plan ul,
+    .abogaia-landing .benefits-list {
+      display: block;
+      max-width: 750px;
+      margin: 22px auto;
+      padding-left: 25px;
+      text-align: left;
+    }
+
+    .abogaia-landing li {
+      margin-bottom: 12px;
+    }
+
+    .abogaia-landing .legal-warning {
+      display: block;
+      max-width: 850px;
+      margin: 28px auto 0;
+      padding: 16px 20px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .abogaia-landing .footer {
+      display: block;
+      width: 100%;
+      margin: 0;
+      padding: 40px 20px;
+      background: #0f172a;
+      color: white;
+      text-align: center;
+    }
+
+    .abogaia-landing .footer h3 {
+      color: #f3c76a;
+    }
+
+    .abogaia-landing .footer a {
+      color: #f3c76a;
       text-decoration: none;
     }
+
+    .abogaia-landing .footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 800px) {
+      .abogaia-landing .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 600px) {
+      .abogaia-landing .hero {
+        padding: 55px 18px;
+      }
+
+      .abogaia-landing .hero p {
+        font-size: 16px;
+      }
+
+      .abogaia-landing .section {
+        padding: 40px 16px;
+      }
+
+      .abogaia-landing .cards,
+      .abogaia-landing .plans {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .abogaia-landing .plan {
+        padding: 25px 20px;
+      }
+
+      .abogaia-landing .actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .abogaia-landing .actions .btn {
+        width: 100%;
+      }
+    }
   </style>
-
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#0f172a">
-<link rel="icon" type="image/png" href="/icon-192.png">
-
 </head>
 
-<body>
+<body class="abogaia-landing">
 
-  <!-- HERO -->
+<main>
+
+  <!-- PORTADA -->
   <section class="hero">
+    <div class="hero-inner">
 
-  <h1>⚖️ AbogaIA</h1>
+      <h1>⚖️ AbogaIA</h1>
+      <h2>Tu guía jurídica inteligente para México</h2>
 
-  <h2>Tu guía jurídica inteligente para México</h2>
+      <p>
+        Resuelve tus dudas legales mediante inteligencia artificial
+        diseñada para ofrecer orientación jurídica general sobre México.
+      </p>
 
-  <p>
+      <p>
+        Comprende tus derechos, conoce posibles opciones y descubre
+        cuándo es recomendable acudir con un abogado especialista.
+      </p>
 
-  Resuelve tus dudas legales en minutos mediante Inteligencia Artificial entrenada para orientar conforme a la legislación mexicana.
+      <div class="actions">
+        <a href="/register.html" class="btn">Crear cuenta gratis</a>
+        <a href="/index.html" class="btn btn-secondary">Iniciar sesión</a>
+      </div>
 
-  </p>
+      <div class="legal-warning">
+        <strong>Aviso importante:</strong>
+        AbogaIA proporciona orientación jurídica general.
+        Las respuestas pueden contener errores o información desactualizada.
+        No sustituyen la asesoría de un abogado ni crean una relación abogado-cliente.
+      </div>
 
-  <p>
-
-  Conoce qué ley aplica, cuáles son tus derechos, qué autoridad puede ayudarte y cuándo es recomendable acudir con un abogado especialista.
-
-  </p>
-
-  <div style="margin-top:35px;">
-
-  <a href="register.html" class="btn">
-
-  Crear cuenta gratis
-
-  </a>
-
-  <a href="index.html" class="btn">
-
-  Iniciar sesión
-
-  </a>
-
-  </div>
-
-  <div class="legal-warning">
-
-  <strong>Aviso importante:</strong>
-
-  La información proporcionada tiene fines exclusivamente informativos y de orientación jurídica general.
-
-  No constituye asesoría legal profesional ni crea una relación abogado-cliente.
-
-  </div>
-
+    </div>
   </section>
-
-<div class="legal-warning">
-  ⚖️ La información proporcionada por esta plataforma es únicamente orientación legal general.
-  No constituye asesoría legal profesional ni crea relación abogado-cliente.
-</div>
 
   <!-- BENEFICIOS -->
   <section class="section">
-    <h2>¿Qué puedes hacer?</h2>
+    <h2>¿Qué puedes hacer con AbogaIA?</h2>
 
     <div class="cards">
-
-    <div class="card">
-
-    ⚖️ Resolver dudas sobre leyes mexicanas
-
-    </div>
-
-    <div class="card">
-
-    📄 Entender tus derechos y obligaciones
-
-    </div>
-
-    <div class="card">
-
-    🏛 Saber qué autoridad puede ayudarte
-
-    </div>
-
-    <div class="card">
-
-    👨‍⚖️ Conocer cuándo necesitas un abogado especialista
-
-    </div>
-
-    <div class="card">
-
-    📝 Obtener orientación legal clara y sencilla
-
-    </div>
-
-    <div class="card">
-
-    🤖 Consultar las 24 horas desde cualquier lugar
-
-    </div>
-
+      <div class="card">⚖️ Resolver dudas sobre leyes mexicanas</div>
+      <div class="card">📄 Entender tus derechos y obligaciones</div>
+      <div class="card">🏛️ Saber qué autoridad puede ayudarte</div>
+      <div class="card">👨‍⚖️ Conocer cuándo necesitas un abogado especialista</div>
+      <div class="card">📝 Obtener orientación legal clara y sencilla</div>
+      <div class="card">🤖 Consultar desde cualquier lugar con internet</div>
     </div>
   </section>
 
-<!-- COMO FUNCIONA -->
+  <!-- COMO FUNCIONA -->
+  <section class="section">
+    <h2>¿Cómo funciona?</h2>
 
-<section class="section">
+    <div class="cards">
+      <div class="card">
+        <h3>1. Describe tu duda</h3>
+        <p>
+          Escribe tu problema legal con tus propias palabras.
+          No necesitas conocimientos jurídicos.
+        </p>
+      </div>
 
-<h2>¿Cómo funciona?</h2>
+      <div class="card">
+        <h3>2. La IA analiza tu consulta</h3>
+        <p>
+          AbogaIA genera orientación general relacionada con
+          el derecho mexicano. Sus respuestas deben verificarse
+          cuando se trate de decisiones importantes.
+        </p>
+      </div>
 
-<div class="cards">
-
-<div class="card">
-<h3>1️⃣ Describe tu duda</h3>
-
-<p>
-Escribe tu problema legal con tus propias palabras.
-No necesitas conocimientos jurídicos.
-</p>
-
-</div>
-
-<div class="card">
-<h3>2️⃣ La IA analiza tu caso</h3>
-
-<p>
-AbogaIA interpreta tu consulta con base en la legislación mexicana y explica qué normas pueden aplicar.
-</p>
-
-</div>
-
-<div class="card">
-<h3>3️⃣ Recibe orientación</h3>
-
-<p>
-Obtén una explicación clara, posibles opciones de acción y recomendaciones sobre cuándo acudir con un abogado especialista.
-</p>
-
-</div>
-
-</div>
-
-</section>
+      <div class="card">
+        <h3>3. Recibe orientación</h3>
+        <p>
+          Conoce posibles opciones y cuándo conviene solicitar
+          la intervención de un abogado especialista.
+        </p>
+      </div>
+    </div>
+  </section>
 
   <!-- PLANES -->
   <section class="pricing">
@@ -317,60 +407,39 @@ Obtén una explicación clara, posibles opciones de acción y recomendaciones so
 
         <div class="plan">
           <h3>Plan Gratis</h3>
-
-          <div class="price">
-            $0
-          </div>
-
-          <p>Ideal para probar la plataforma</p>
+          <div class="price">$0 MXN</div>
+          <p class="plan-intro">Ideal para conocer AbogaIA</p>
 
           <ul>
-
-          <li>✔ Consultas ilimitadas</li>
-
-          <li>✔ Respuestas más completas y detalladas</li>
-
-          <li>✔ Historial permanente</li>
-
-          <li>✔ Sin publicidad</li>
-
-          <li>✔ Acceso prioritario a nuevas funciones</li>
-
-          <li>✔ Soporte preferente</li>
-
+            <li>✔ Hasta 2 consultas por día.</li>
+            <li>✔ Orientación jurídica general.</li>
+            <li>✔ Respuestas breves y sencillas.</li>
+            <li>✔ Acceso mediante cuenta gratuita.</li>
           </ul>
+
+          <div class="plan-action">
+            <a href="/register.html" class="btn">Crear cuenta gratis</a>
+          </div>
         </div>
 
         <div class="plan premium">
           <h3>Plan PREMIUM PRO</h3>
 
-          <div class="price">
+          <div class="price">Consulta el precio vigente</div>
 
-          USD $9.99 / mes
-
-          </div>
-
-          <p>Para empresarios, trabajadores y abogados</p>
+          <p class="plan-intro">
+            Para usuarios que necesitan realizar más consultas.
+          </p>
 
           <ul>
-
-          <li>✔ Consultas ilimitadas</li>
-
-          <li>✔ Respuestas más completas</li>
-
-          <li>✔ Historial completo</li>
- 
-          <li>✔ Sin publicidad</li>
-
-          <li>✔ Acceso prioritario a nuevas funciones</li>
-
+            <li>✔ Consultas ilimitadas, sujetas a las condiciones del servicio.</li>
+            <li>✔ Respuestas más completas.</li>
+            <li>✔ Acceso a funciones PREMIUM habilitadas.</li>
           </ul>
 
-          <br>
-
-          <a href="register.html" class="btn">
-            🚀 Probar Premium
-          </a>
+          <div class="plan-action">
+            <a href="/register.html" class="btn">Conocer PREMIUM</a>
+          </div>
         </div>
 
       </div>
@@ -381,18 +450,12 @@ Obtén una explicación clara, posibles opciones de acción y recomendaciones so
   <section class="section">
     <h2>¿Por qué elegir AbogaIA?</h2>
 
-    <ul>
-
-    <li>✔ Orientación jurídica disponible las 24 horas.</li>
-
-    <li>✔ Explicaciones claras, sin lenguaje complicado.</li>
-
-    <li>✔ Especializada en legislación mexicana.</li>
-
-    <li>✔ Ideal para trabajadores, familias, estudiantes y pequeños negocios.</li>
-
-    <li>✔ Te ayuda a decidir cuál es el siguiente paso antes de acudir con un abogado.</li>
-
+    <ul class="benefits-list">
+      <li>✔ Orientación jurídica disponible en línea.</li>
+      <li>✔ Explicaciones claras, sin lenguaje complicado.</li>
+      <li>✔ Enfoque en consultas relacionadas con México.</li>
+      <li>✔ Útil para trabajadores, familias, estudiantes y pequeños negocios.</li>
+      <li>✔ Ayuda a identificar posibles siguientes pasos.</li>
     </ul>
   </section>
 
@@ -401,120 +464,62 @@ Obtén una explicación clara, posibles opciones de acción y recomendaciones so
     <h2>👨‍⚖️ Encuentra un abogado especialista</h2>
 
     <p>
-
-    Próximamente podrás localizar abogados por especialidad y estado para solicitar asesoría profesional cuando tu caso lo requiera.
-
+      Próximamente podrás localizar abogados por especialidad
+      y estado para solicitar asesoría profesional cuando tu caso lo requiera.
     </p>
 
-    <a href="abogados.html" class="btn">
-      Ver Directorio de Abogados
-    </a>
+    <a href="/abogados.html" class="btn">Ver Directorio de Abogados</a>
   </section>
 
-<section class="section">
+  <!-- CONFIANZA -->
+  <section class="section">
+    <h2>¿Por qué confiar en AbogaIA?</h2>
 
-<h2>¿Por qué confiar en AbogaIA?</h2>
+    <div class="cards">
+      <div class="card">🔒 Compromiso con la privacidad</div>
+      <div class="card">🇲🇽 Orientación enfocada en México</div>
+      <div class="card">⚖️ Explicaciones claras y sencillas</div>
+      <div class="card">⏰ Acceso en línea desde cualquier lugar</div>
+    </div>
+  </section>
 
-<div class="cards">
-
-<div class="card">
-🔒 Información protegida
-</div>
-
-<div class="card">
-🇲🇽 Especializada en legislación mexicana
-</div>
-
-<div class="card">
-⚖️ Orientación clara y sencilla
-</div>
-
-<div class="card">
-⏰ Disponible las 24 horas
-</div>
-
-</div>
-
-<section class="section">
-
-<h2>Comienza hoy mismo</h2>
-
-<p>
-
-Miles de personas enfrentan dudas legales cada día.
-
-AbogaIA te ayuda a entender tus opciones antes de tomar una decisión importante.
-
-</p>
-
-<br>
-
-<a href="register.html" class="btn">
-
-Crear cuenta gratis
-
-</a>
-
-</section>
-
-</section> 
-  <!-- FOOTER -->
-  <footer class="footer">
-
-<h3>⚖️ AbogaIA</h3>
-
-<p>
-
-Tu guía jurídica inteligente para México.
-
-</p>
-
-<p>
-
-Orientación legal mediante Inteligencia Artificial.
-
-</p>
-
-<p style="font-size:13px;opacity:.85;">
-
-La información proporcionada tiene fines exclusivamente informativos y no sustituye la asesoría legal profesional.
-
-</p>
-
-<br>
-
-<a href="terminos.html">
-
-Términos y Condiciones
-
-</a>
-
-|
-
-<a href="privacidad.html">
-
-Aviso de Privacidad
-
-</a>
-
-<br><br>
-
-<p>
-
-© 2026 AbogaIA
-
-</p>
-
-</footer>
-
-    <p style="font-size:13px; opacity:0.9;">
-  La plataforma proporciona orientación legal general y no sustituye asesoría jurídica profesional.
-</p>
+  <!-- LLAMADO FINAL -->
+  <section class="section">
+    <h2>Comienza hoy mismo</h2>
 
     <p>
-      <a href="terminos.html">Términos y Condiciones</a> |
-      <a href="privacidad.html">Aviso de Privacidad</a>
+      Miles de personas enfrentan dudas legales cada día.
+      AbogaIA te ayuda a comprender tus opciones antes
+      de tomar una decisión importante.
     </p>
+
+    <a href="/register.html" class="btn">Crear cuenta gratis</a>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <h3>⚖️ AbogaIA</h3>
+
+  <p>Tu guía jurídica inteligente para México.</p>
+
+  <p>
+    Orientación jurídica general mediante inteligencia artificial.
+  </p>
+
+  <p style="font-size:13px; opacity:0.85;">
+    Esta plataforma no sustituye la asesoría jurídica profesional.
+  </p>
+
+  <p>
+    <a href="/terminos.html">Términos y Condiciones</a>
+    |
+    <a href="/privacidad.html">Aviso de Privacidad</a>
+  </p>
+
+  <p>© 2026 AbogaIA</p>
+</footer>
 
 </body>
 </html>
